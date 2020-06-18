@@ -1,4 +1,5 @@
-﻿using Anubis.Models;
+﻿using Antlr4.Runtime.Tree.Xpath;
+using Anubis.Models;
 using Discord;
 using Discord.WebSocket;
 using LiteDB;
@@ -94,6 +95,17 @@ namespace Anubis.Services
 			if (all.Count == 0) return null;
 			else return all;
 		}
+		public void DeleteCharacter(Character ch)
+		{
+			var col = Database.GetCollection<Character>("Characters");
+
+			col.Delete(x => x.Id == ch.Id);
+		}
+		public void UpdateCharacter(Character ch)
+		{
+			var col = Database.GetCollection<Character>("Characters");
+			col.Update(ch);
+		}
 		public void UpdateUser(User U)
 		{
 			var col = Database.GetCollection<User>("Users");
@@ -104,14 +116,109 @@ namespace Anubis.Services
 		public Embed RenderSheet(Character character)
 		{
 			var embed = new EmbedBuilder()
-				.WithTitle(character.Name);
+				.WithTitle(character.Name+(character.Attributes["class"].NullorEmpty()?"":" the "+ character.Attributes["class"]))
+				.WithThumbnailUrl(character.Attributes["image"]);
 			var sb = new StringBuilder();
 
-			
+			sb.AppendLine("Health [" + character.Attributes["health"] + "/" + character.Attributes["maxhealth"] + "]");
+			sb.AppendLine("Energy [" + character.Attributes["energy"] + "/" + character.Attributes["maxenergy"] + "]");
+			sb.AppendLine("Dashes [" + character.Attributes["dash"] + "/" + character.Attributes["maxdash"] + "]");
+			sb.AppendLine("Woe [" + character.Attributes["woe"] + "/9]");
+			sb.AppendLine("Corruption [" + character.Attributes["woe"] + "/13]");
+			embed.AddField("Vitals", sb.ToString(), true);
+			sb.Clear();
 
+			sb.AppendLine("Grit [" + character.Attributes["grit"] + "] | [" + character.Attributes["nerve"] + "] Nerve");
+			sb.AppendLine("Vigor [" + character.Attributes["vigor"] + "]");
+			sb.AppendLine("Agility [" + character.Attributes["agility"] + "]");
+			sb.AppendLine("Insight [" + character.Attributes["insight"] + "]");
+			sb.AppendLine("Presence [" + character.Attributes["presence"] + "]");
+			embed.AddField("Abilities", sb.ToString(), true);
+			sb.Clear();
+
+			sb.AppendLine(Icons.SheetIcons["exploration"] + " [" + character.Attributes["exploration_judgement"] + "] [" + character.Attributes["exploration"] + "]");
+			sb.AppendLine(Icons.SheetIcons["survival"] + " [" + character.Attributes["survival_judgement"] + "] [" + character.Attributes["survival"] + "]");
+			sb.AppendLine(Icons.SheetIcons["combat"] + " [" + character.Attributes["combat_judgement"] + "] [" + character.Attributes["combat"] + "]");
+			sb.AppendLine(Icons.SheetIcons["social"] + " [" + character.Attributes["social_judgement"] + "] [" + character.Attributes["social"] + "]");
+			sb.AppendLine(Icons.SheetIcons["manipulate"] + " [" + character.Attributes["manipulate_judgement"] + "] [" + character.Attributes["manipulate"] + "]");
+			embed.AddField("Disciplines", sb.ToString(), true);
+			sb.Clear();
+
+			sb.AppendLine("Species: " + character.Attributes["species"]);
+			sb.AppendLine("Trait: " + character.Attributes["trait"]);
+			sb.AppendLine("Knack: " + character.Attributes["trait"]);
+			sb.AppendLine("Advancement: " + character.Attributes["advance"]);
+			embed.AddField("Persona",sb.ToString(),true);
+			sb.Clear();
+
+			var inv = ParseInventory(character.Inventory);
+
+			sb.Append(Icons.SheetIcons["Gearbit"] + " " + character.Attributes["bits"] + " | " + Icons.SheetIcons["Ingredient"] + " " + character.Attributes["ingredients"] + " | " + Icons.SheetIcons["Component"] + " " + character.Attributes["components"]);
+			foreach(var i in inv)
+			{
+				switch (i.Key.Type)
+				{
+					case "armor":
+						sb.AppendLine("• " + i.Key.Name + " " + (i.Key.Use ? "[Equipped]" : "")+(i.Value>1?" x"+i.Value:""));
+						break;
+					case "weapon":
+						sb.AppendLine("• " + i.Key.Name + " " + (i.Key.Use ? "[Wielding]" : "") + (i.Value > 1 ? " x" + i.Value : ""));
+						break;
+					case "usable":
+						sb.AppendLine("• " + i.Key.Name + " " + (i.Key.Use ? "[Spent]" : "") + (i.Value > 1 ? " x" + i.Value : ""));
+						break;
+					default:
+						sb.AppendLine("• " + i.Key.Name + " " + (i.Value > 1 ? " x" + i.Value : ""));
+						break;
+				}
+			}
+			embed.AddField("Inventory", sb.ToString(),true);
+			sb.Clear();
+
+			sb.AppendLine("Passive:\n• " + (character.Passive == null ? "None" : character.Passive.Name));
+			sb.AppendLine("Dash:\n• " + (character.Dash == null ? "None" : character.Dash.Name));
+			sb.AppendLine("Slot 1:\n• " + (character.Slot1== null ? "None" : character.Slot1.Name));
+			sb.AppendLine("Slot 2:\n• " + (character.Slot2== null ? "None" : character.Slot2.Name));
+			sb.AppendLine("Slot 3:\n• " + (character.Slot3== null ? "None" : character.Slot3.Name));
+			sb.AppendLine("Slot 4:\n• " + (character.Slot4 == null ? "None" : character.Slot4.Name));
+
+			embed.AddField("Talents", sb.ToString(),true);
+			sb.Clear();
+			
+			foreach(var cf in character.Features)
+			{
+				sb.AppendLine("**" + cf.Name + "**");
+				sb.AppendLine(cf.Description);
+			}
+			embed.AddField("Class Features", sb.Length == 0 ? "None" : sb.ToString());
 			return embed.Build();
 		}
+		public string RenderTalent(Talent talent)
+		{
+			var sb = new StringBuilder();
 
+			sb.AppendLine(Icons.SheetIcons[talent.Discipline]+" "+talent.Name);
+			sb.Append("("+talent.Cost+" | ");
+			if (talent.Skill != "none") sb.Append(talent.Skill+" | ");
+			if (talent.Range != "-") sb.Append("range " + talent.Range);
+			sb.Append(")");
+			sb.Append("\n");
+			sb.AppendLine(talent.Description);
+			return sb.ToString();
+		}
+		public string RenderDash(Dash talent)
+		{
+			var sb = new StringBuilder();
+
+			sb.AppendLine(talent.Name);
+			sb.Append("(" + talent.Type);
+			if (talent.Skill != "none") sb.Append(" | "+talent.Skill);
+			if (talent.Range != "-") sb.Append(" | range " + talent.Range);
+			sb.Append(")");
+			sb.Append("\n");
+			sb.AppendLine(talent.Description);
+			return sb.ToString();
+		}
 		public string GetPrefix(ulong guild)
 		{
 			var col = Database.GetCollection<Server>("Servers");
@@ -119,6 +226,88 @@ namespace Anubis.Services
 			var g = col.FindOne(x => x.Id == guild);
 
 			return g.Prefix;
+		}
+		public Dictionary<Item, int> ParseInventory(List<Item> Inventory)
+		{
+			var list = Inventory.GroupBy(x => x);
+			Dictionary<Item, int> final = new Dictionary<Item, int>();
+			foreach (var i in list)
+			{
+				final.Add(i.Key, i.Count());
+			}
+			return final;
+		}
+		public Talent[] QueryTalent(string Name, User user)
+		{
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+			var CRB = col.FindOne(x => x.Id == 1);
+			var talents = CRB.Talents;
+			foreach (var cp in user.Subscriptions)
+			{
+				if (cp.Talents.Count() > 0) talents.AddRange(cp.Talents);
+			}
+			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
+			return results;
+		}
+		public GameClass[] QueryClass(string Name, User user)
+		{
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+			var CRB = col.FindOne(x => x.Id == 1);
+			var talents = CRB.Classes;
+			foreach (var cp in user.Subscriptions)
+			{
+				if (cp.Classes.Count() > 0) talents.AddRange(cp.Classes);
+			}
+			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
+			return results;
+		}
+		public Dash[] QueryDash(string Name, User user)
+		{
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+			var CRB = col.FindOne(x => x.Id == 1);
+			var talents = CRB.Dashes;
+			foreach (var cp in user.Subscriptions)
+			{
+				if (cp.Dashes.Count() > 0) talents.AddRange(cp.Dashes);
+			}
+			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
+			return results;
+		}
+		public Passive[] QueryPassive(string Name, User user)
+		{
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+			var CRB = col.FindOne(x => x.Id == 1);
+			var talents = CRB.Passives;
+			foreach (var cp in user.Subscriptions)
+			{
+				if (cp.Passives.Count() > 0) talents.AddRange(cp.Passives);
+			}
+			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
+			return results;
+		}
+		public Item[] QueryItem(string Name, User user)
+		{
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+			var CRB = col.FindOne(x => x.Id == 1);
+			var talents = CRB.Items;
+			foreach (var cp in user.Subscriptions)
+			{
+				if (cp.Items.Count() > 0) talents.AddRange(cp.Items);
+			}
+			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
+			return results;
+		}
+		public Models.Action[] QueryActions(string Name, User user)
+		{
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+			var CRB = col.FindOne(x => x.Id == 1);
+			var talents = CRB.Actions;
+			foreach (var cp in user.Subscriptions)
+			{
+				if (cp.Actions.Count() > 0) talents.AddRange(cp.Actions);
+			}
+			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
+			return results;
 		}
 	}
 	public static class Icons
@@ -203,11 +392,14 @@ namespace Anubis.Services
 		};
 		public static Dictionary<string, string> SheetIcons { get; set; } = new Dictionary<string, string>()
 		{
-			{"Exploration", "<:explore:722466457375735889>" },
-			{"Combat", "<:combat:722466457501564968>" },
-			{"Survival", "<:survival:722466457740640296>" },
-			{"Social", "<:social:722466457446907996>" },
-			{"Manipulate", "<:manipulate:722466457581256724>" },
+			{"exploration", "<:explore:722466457375735889>" },
+			{"combat", "<:combat:722466457501564968>" },
+			{"survival", "<:survival:722466457740640296>" },
+			{"social", "<:social:722466457446907996>" },
+			{"manipulate", "<:manipulate:722466457581256724>" },
+			{"Gearbit" ,"<:Gearbits:722835895321100330>"},
+			{"Component","<:component:722835895488741466>" },
+			{"Ingredient","<:ingredients:722835895253860364>" }
 		};
 	}
 }

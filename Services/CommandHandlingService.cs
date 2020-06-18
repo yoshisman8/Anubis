@@ -126,7 +126,8 @@ namespace Anubis.Services
 			{
 				try
 				{
-					
+					await Task.Delay(TimeSpan.FromSeconds(3));
+					await Context.Message.DeleteAsync();
 				}
 				catch
 				{

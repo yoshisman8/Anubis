@@ -43,6 +43,27 @@ namespace Anubis.Modules
 			{
 				JObject json = JObject.Parse(raw);
 
+				if (json["metadata"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file has no metadata. Fix this error and send the file again.");
+					return;
+				}
+				if (json["metadata"]["name"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file's metadata has no name. Fix this error and send the file again.");
+					return;
+				}
+				if (json["metadata"]["tag"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file's metadata has no tag. Fix this error and send the file again.");
+					return;
+				}
+				if (json["metadata"]["version"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file's metadata has no version number. Fix this error and send the file again.");
+					return;
+				}
+
 				var col = Database.GetCollection<ContentPack>("ContentPacks");
 
 				if (!col.Exists(x => x.Metadata.name == (string)json["metadata"]["name"] && x.Metadata.tag == (string)json["metadata"]["tag"]))
@@ -55,6 +76,9 @@ namespace Anubis.Modules
 					col.Insert(pack);
 				}
 				var p = col.FindOne(x => x.Metadata.name == (string)json["metadata"]["name"] && x.Metadata.tag == (string)json["metadata"]["tag"] && x.Author == Context.User.Id);
+
+
+				
 
 				if (json["classes"] != null && json["classes"].HasValues)
 				{
@@ -652,7 +676,7 @@ namespace Anubis.Modules
 
 				p.Metadata = JsonConvert.DeserializeObject<Metadata>(json["metadata"].ToString());
 				col.Update(p);
-				col.EnsureIndex(x=>x.Metadata.name.ToLower());
+				col.EnsureIndex("ContentPack", "LOWER($.Metadata.name)");
 				var user = Utils.GetUser(Context.User.Id);
 				if(!user.Subscriptions.Exists(x=> x.Id == p.Id))
 				{
@@ -690,6 +714,26 @@ namespace Anubis.Modules
 			{
 				JObject json = JObject.Parse(raw);
 
+				if (json["metadata"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file has no metadata. Fix this error and send the file again.");
+					return;
+				}
+				if (json["metadata"]["name"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file's metadata has no name. Fix this error and send the file again.");
+					return;
+				}
+				if (json["metadata"]["tag"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file's metadata has no tag. Fix this error and send the file again.");
+					return;
+				}
+				if (json["metadata"]["version"] == null)
+				{
+					await ReplyAsync(Context.User.Mention + ", This file's metadata has no version number. Fix this error and send the file again.");
+					return;
+				}
 				var col = Database.GetCollection<ContentPack>("ContentPacks");
 
 				if (!col.Exists(x => x.Id == 1))
@@ -1307,7 +1351,7 @@ namespace Anubis.Modules
 			}
 
 		}
-		[Command("Subscribe")]
+		[Command("Subscribe"), Alias("Sub")]
 		public async Task subscribe([Remainder] string name)
 		{
 			var user = Utils.GetUser(Context.User.Id);
@@ -1315,6 +1359,187 @@ namespace Anubis.Modules
 			var col = Database.GetCollection<ContentPack>("ContentPacks");
 
 			var packs = col.Find(x => x.Metadata.name.StartsWith(name.ToLower()));
+			packs = packs.OrderBy(x => x.Metadata.name);
+
+			if (packs.Count() == 0)
+			{
+				await ReplyAsync(Context.User.Mention + ", there are no content packs with that name.");
+				return;
+			}
+			else if (packs.Count() == 1 && packs.FirstOrDefault().Metadata.name.ToLower() == name.ToLower())
+			{
+				var p = packs.FirstOrDefault();
+				if (user.Subscriptions.Contains(p))
+				{
+					await ReplyAsync(Context.User.Mention + ", You're already subscribed to this content pack.");
+					return;
+				}
+				else
+				{
+					user.Subscriptions.Add(p);
+					Utils.UpdateUser(user);
+					await ReplyAsync( Context.User.Mention + ", You're now subscribed to the content pack " + p.Metadata.name);
+				}
+			}
+			else if(packs.Count() > 1 && packs.Count() < 6)
+			{
+				
+				var sb = new StringBuilder();
+				sb.AppendLine(Context.User.Mention + ", Multiple content packs where found. Please respond with the number of the pack you wish to subscribe to:");
+				for(int i = 0; i < packs.Count(); i++)
+				{
+					sb.AppendLine("`[" + i + "]` " + packs.ElementAt(i).Metadata.name);
+				}
+				var msg = await ReplyAsync(sb.ToString());
+
+				var response = await NextMessageAsync(true, true, TimeSpan.FromSeconds(10));
+				
+				if(response == null)
+				{
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", Timed out on selection.");
+					return;
+				}
+				if(int.TryParse(response.Content,out int index))
+				{
+					if(index >= packs.Count())
+					{
+						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This is not a valid option.");
+						try
+						{
+							await response.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						return;
+					}
+					else
+					{
+						try
+						{
+							await response.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						var p = packs.ElementAt(index);
+						if (user.Subscriptions.Contains(p))
+						{
+							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You're already subscribed to this content pack.");
+							return;
+						}
+						else
+						{
+							user.Subscriptions.Add(p);
+							Utils.UpdateUser(user);
+							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You're now subscribed to the content pack " + p.Metadata.name);
+						}
+					}
+				}
+				else
+				{
+					try
+					{
+						await response.DeleteAsync();
+					}
+					catch
+					{
+
+					}
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling command.");
+					return;
+				}
+			}
+			
+		}
+		[Command("Unsubscribe"), Alias("Unsub")]
+		public async Task unsubscribe([Remainder] string name)
+		{
+			var user = Utils.GetUser(Context.User.Id);
+
+			var packs = user.Subscriptions.Where(x => x.Metadata.name.StartsWith(name.ToLower()));
+			packs = packs.OrderBy(x => x.Metadata.name);
+
+			if (packs.Count() == 0)
+			{
+				await ReplyAsync(Context.User.Mention + ", You aren't subscribed to any content pack with that name.");
+				return;
+			}
+			else if (packs.Count() == 1 && packs.FirstOrDefault().Metadata.name.ToLower() == name.ToLower())
+			{
+				var p = packs.FirstOrDefault();
+				user.Subscriptions.Remove(p);
+				Utils.UpdateUser(user);
+				await ReplyAsync(Context.User.Mention + ", You're now unsubscribed from the content pack " + p.Metadata.name);
+
+			}
+			else if (packs.Count() > 1 && packs.Count() < 6)
+			{
+
+				var sb = new StringBuilder();
+				sb.AppendLine(Context.User.Mention + ", Multiple content packs where found. Please respond with the number of the pack you wish to unsubscribe to:");
+				for (int i = 0; i < packs.Count(); i++)
+				{
+					sb.AppendLine("`[" + i + "]` " + packs.ElementAt(i).Metadata.name);
+				}
+				var msg = await ReplyAsync(sb.ToString());
+
+				var response = await NextMessageAsync(true, true, TimeSpan.FromSeconds(10));
+
+				if (response == null)
+				{
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", Timed out on selection.");
+					return;
+				}
+				if (int.TryParse(response.Content, out int index))
+				{
+					if (index >= packs.Count())
+					{
+						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This is not a valid option.");
+						try
+						{
+							await response.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						return;
+					}
+					else
+					{
+						try
+						{
+							await response.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						var p = packs.ElementAt(index);
+						user.Subscriptions.Remove(p);
+						Utils.UpdateUser(user);
+						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You're now unsubscribed from the content pack " + p.Metadata.name);
+
+					}
+				}
+				else
+				{
+					try
+					{
+						await response.DeleteAsync();
+					}
+					catch
+					{
+
+					}
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling command.");
+					return;
+				}
+			}
+
 		}
 	}
 }

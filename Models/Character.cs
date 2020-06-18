@@ -41,11 +41,14 @@ namespace Anubis.Models
 			{ "maxdash", "2" },
 			{ "armor","0" },
 			{ "bits","0" },
+			{ "ingredients","0" },
+			{ "components","0" },
 			{ "advance","0" },
 			{ "woe","0"  },
 			{ "corruption", "0" },
 			{ "knack",""},
 			{ "trait","" },
+			{ "image","" }
 		};
 		public Dash Dash { get; set; }
 		public Passive Passive { get; set; }
