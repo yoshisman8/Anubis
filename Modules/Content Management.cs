@@ -435,7 +435,7 @@ namespace Anubis.Modules
 						}
 						if (i["type"].ToString().NullorEmpty())
 						{
-							await ReplyAsync(Context.User.Mention + ", item " + i["name"] + " has no type. Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", item " + i["name"] + " has no type (Valid types: weapon, armor, shield, usable, consumable, upgrade). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}

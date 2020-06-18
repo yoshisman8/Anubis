@@ -1,6 +1,12 @@
-﻿using System;
+﻿using Anubis.Services;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Anubis.Models
@@ -38,7 +44,7 @@ namespace Anubis.Models
 		public string Name { get; set; }
 		public string Description { get; set; }
 	}
-	public class Item
+	public class Item 
 	{
 		public string Name { get; set; }
 		public string Cost { get; set; }
@@ -55,7 +61,21 @@ namespace Anubis.Models
 		public string Frequency { get; set; }
 		public string Effect { get; set; }
 		public bool Use { get; set; } = false;
+		public int Used { get; set; } = 0;
 		public string Note { get; set; }
+
+		public override bool Equals(object obj)
+		{
+			return (obj is Item) && (Equals(ToString(), obj.ToString()));
+		}
+		public override int GetHashCode()
+		{
+			return ToString().GetHashCode();
+		}
+		public override string ToString()
+		{
+			return JsonConvert.SerializeObject(this);
+		}
 	}
 	public class Action
 	{

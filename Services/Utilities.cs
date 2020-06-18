@@ -5,9 +5,11 @@ using Discord.WebSocket;
 using LiteDB;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -144,54 +146,57 @@ namespace Anubis.Services
 			embed.AddField("Disciplines", sb.ToString(), true);
 			sb.Clear();
 
-			sb.AppendLine("Species: " + character.Attributes["species"]);
-			sb.AppendLine("Trait: " + character.Attributes["trait"]);
-			sb.AppendLine("Knack: " + character.Attributes["trait"]);
-			sb.AppendLine("Advancement: " + character.Attributes["advance"]);
-			embed.AddField("Persona",sb.ToString(),true);
-			sb.Clear();
-
-			var inv = ParseInventory(character.Inventory);
-
-			sb.Append(Icons.SheetIcons["Gearbit"] + " " + character.Attributes["bits"] + " | " + Icons.SheetIcons["Ingredient"] + " " + character.Attributes["ingredients"] + " | " + Icons.SheetIcons["Component"] + " " + character.Attributes["components"]);
-			foreach(var i in inv)
-			{
-				switch (i.Key.Type)
-				{
-					case "armor":
-						sb.AppendLine("• " + i.Key.Name + " " + (i.Key.Use ? "[Equipped]" : "")+(i.Value>1?" x"+i.Value:""));
-						break;
-					case "weapon":
-						sb.AppendLine("• " + i.Key.Name + " " + (i.Key.Use ? "[Wielding]" : "") + (i.Value > 1 ? " x" + i.Value : ""));
-						break;
-					case "usable":
-						sb.AppendLine("• " + i.Key.Name + " " + (i.Key.Use ? "[Spent]" : "") + (i.Value > 1 ? " x" + i.Value : ""));
-						break;
-					default:
-						sb.AppendLine("• " + i.Key.Name + " " + (i.Value > 1 ? " x" + i.Value : ""));
-						break;
-				}
-			}
-			embed.AddField("Inventory", sb.ToString(),true);
-			sb.Clear();
-
-			sb.AppendLine("Passive:\n• " + (character.Passive == null ? "None" : character.Passive.Name));
-			sb.AppendLine("Dash:\n• " + (character.Dash == null ? "None" : character.Dash.Name));
-			sb.AppendLine("Slot 1:\n• " + (character.Slot1== null ? "None" : character.Slot1.Name));
-			sb.AppendLine("Slot 2:\n• " + (character.Slot2== null ? "None" : character.Slot2.Name));
-			sb.AppendLine("Slot 3:\n• " + (character.Slot3== null ? "None" : character.Slot3.Name));
-			sb.AppendLine("Slot 4:\n• " + (character.Slot4 == null ? "None" : character.Slot4.Name));
-
-			embed.AddField("Talents", sb.ToString(),true);
-			sb.Clear();
-			
-			foreach(var cf in character.Features)
+			foreach (var cf in character.Features)
 			{
 				sb.AppendLine("**" + cf.Name + "**");
 				sb.AppendLine(cf.Description);
 			}
 			embed.AddField("Class Features", sb.Length == 0 ? "None" : sb.ToString());
+			sb.Clear();
+
+			sb.AppendLine("Species: " + character.Attributes["species"]);
+			sb.AppendLine("Trait: " + character.Attributes["trait"]);
+			sb.AppendLine("Knack: " + character.Attributes["trait"]);
+			sb.AppendLine("Advancement: " + character.Attributes["advance"]);
+			embed.AddField("Persona", sb.ToString(),true);
+			sb.Clear();
+
+			sb.AppendLine("Passive: " + (character.Passive == null ? "None" : character.Passive.Name));
+			sb.AppendLine("Dash: " + (character.Dash == null ? "None" : character.Dash.Name));
+			sb.AppendLine("Slot 1: " + (character.Slot1== null ? "None" : character.Slot1.Name));
+			sb.AppendLine("Slot 2: " + (character.Slot2== null ? "None" : character.Slot2.Name));
+			sb.AppendLine("Slot 3: " + (character.Slot3== null ? "None" : character.Slot3.Name));
+			sb.AppendLine("Slot 4: " + (character.Slot4 == null ? "None" : character.Slot4.Name));
+
+			embed.AddField("Talents", sb.ToString(),true);
+			sb.Clear();
+
+			var inv = ParseInventory(character.Inventory);
+
+			sb.AppendLine(Icons.SheetIcons["Gearbit"] + " " + character.Attributes["bits"] + " | " + Icons.SheetIcons["Ingredient"] + " " + character.Attributes["ingredients"] + " | " + Icons.SheetIcons["Component"] + " " + character.Attributes["components"]);
+			foreach (var i in inv)
+			{
+				sb.AppendLine("• " + RenderItemName(i.Key) + (i.Value > 1 ? " x" + i.Value : ""));
+			}
+			embed.AddField("Inventory", sb.ToString(),true);
+
 			return embed.Build();
+		}
+		public string RenderItemName(Item item)
+		{
+			switch (item.Type)
+			{
+				case "armor":
+					return item.Name + " " + (item.Use ? "[E]" : "");
+				case "weapon":
+					return item.Name + " " + (item.Use ? "[W]" : "");
+				case "shield":
+					return item.Name + " " + (item.Use ? "[W]" : "");
+				case "usable":
+					return	item.Name + " " + "[" + (int.Parse(item.Frequency)-item.Used) + "/"+item.Frequency+"]";
+				default:
+					return item.Name;
+			}
 		}
 		public string RenderTalent(Talent talent)
 		{
@@ -229,12 +234,7 @@ namespace Anubis.Services
 		}
 		public Dictionary<Item, int> ParseInventory(List<Item> Inventory)
 		{
-			var list = Inventory.GroupBy(x => x);
-			Dictionary<Item, int> final = new Dictionary<Item, int>();
-			foreach (var i in list)
-			{
-				final.Add(i.Key, i.Count());
-			}
+			var final = Inventory.GroupBy(x => x).ToDictionary(y => y.Key,z=> z.Count());
 			return final;
 		}
 		public Talent[] QueryTalent(string Name, User user)
