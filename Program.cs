@@ -23,6 +23,7 @@ namespace Anubis
 		public async Task MainAsync()
 		{
 			Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "data"));
+			Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "data","temp"));
 
 			_client = new DiscordSocketClient();
 			_config = BuildConfig();

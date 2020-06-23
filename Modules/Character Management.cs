@@ -226,7 +226,7 @@ namespace Anubis.Modules
 							}
 							if (int.TryParse(reply.Content, out int index))
 							{
-								if (index >= dashes.Length)
+								if (Math.Abs(index) >= dashes.Length)
 								{
 									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 									try
@@ -296,7 +296,7 @@ namespace Anubis.Modules
 							}
 							if (int.TryParse(reply.Content, out int index))
 							{
-								if (index >= passives.Length)
+								if (Math.Abs(index) >= passives.Length)
 								{
 									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 									try
@@ -379,7 +379,7 @@ namespace Anubis.Modules
 							}
 							if (int.TryParse(reply.Content, out int index))
 							{
-								if (index >= tals.Length)
+								if (Math.Abs(index) >= tals.Length)
 								{
 									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 									try
@@ -471,7 +471,7 @@ namespace Anubis.Modules
 							}
 							if (int.TryParse(reply.Content, out int index))
 							{
-								if (index >= items.Length)
+								if (Math.Abs(index) >= items.Length)
 								{
 									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 									try
@@ -541,7 +541,7 @@ namespace Anubis.Modules
 							}
 							if (int.TryParse(reply.Content, out int index))
 							{
-								if (index >= iitems.Length)
+								if (Math.Abs(index) >= iitems.Length)
 								{
 									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 									try
@@ -611,7 +611,7 @@ namespace Anubis.Modules
 							}
 							if (int.TryParse(reply.Content, out int index))
 							{
-								if (index >= iitems.Length)
+								if (Math.Abs(index) >= iitems.Length)
 								{
 									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 									try

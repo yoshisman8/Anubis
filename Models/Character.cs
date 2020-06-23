@@ -43,12 +43,13 @@ namespace Anubis.Models
 			{ "bits","0" },
 			{ "ingredients","0" },
 			{ "components","0" },
-			{ "advance","0" },
+			{ "advancement","0" },
 			{ "woe","0"  },
 			{ "corruption", "0" },
 			{ "knack",""},
 			{ "trait","" },
-			{ "image","" }
+			{ "image","" },
+			{ "token","" }
 		};
 		public Dash Dash { get; set; }
 		public Passive Passive { get; set; }

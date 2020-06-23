@@ -1401,7 +1401,7 @@ namespace Anubis.Modules
 				}
 				if(int.TryParse(response.Content,out int index))
 				{
-					if(index >= packs.Count())
+					if(Math.Abs(index) >= packs.Count())
 					{
 						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This is not a valid option.");
 						try
@@ -1495,7 +1495,7 @@ namespace Anubis.Modules
 				}
 				if (int.TryParse(response.Content, out int index))
 				{
-					if (index >= packs.Count())
+					if (Math.Abs(index) >= packs.Count())
 					{
 						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This is not a valid option.");
 						try

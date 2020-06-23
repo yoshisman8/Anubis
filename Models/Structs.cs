@@ -22,22 +22,13 @@ namespace Anubis.Models
 		public string Name { get; set; }
 		public string Description { get; set; }
 	}
-	public class Talent
+	public class Talent : Action
 	{
-		public string Name { get; set; }
-		public string Description { get; set; }
-		public string Cost { get; set; }
 		public string Discipline { get; set; }
-		public string Skill { get; set; }
-		public string Range { get; set; }
 	}
-	public class Dash
+	public class Dash : Action
 	{
-		public string Name { get; set; }
-		public string Description { get; set; }
-		public string Type { get; set; }
-		public string Skill { get; set; }
-		public string Range { get; set; }
+		
 	}
 	public class Passive
 	{
@@ -163,11 +154,15 @@ namespace Anubis.Models
 			{ "maxdash", "2" },
 			{ "armor","0" },
 			{ "bits","0" },
-			{ "advance","0" },
+			{ "ingredients","0" },
+			{ "components","0" },
+			{ "advancement","0" },
 			{ "woe","0"  },
 			{ "corruption", "0" },
 			{ "knack",""},
-			{ "trait","" }
+			{ "trait","" },
+			{ "image","" },
+			{ "token","" }
 		};
 		public enum Disciplines { combat, exploration, social, survival, manipulate }
 		public enum ItemTypes { armor, shield, weapon, usable, consumable, upgrade }

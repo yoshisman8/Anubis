@@ -2,17 +2,25 @@
 using Anubis.Models;
 using Discord;
 using Discord.WebSocket;
+using ImageProcessor;
+using ImageProcessor.Imaging;
+using ImageProcessor.Imaging.Formats;
+using ImageProcessor.Processors;
 using LiteDB;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Anubis.Services
 {
@@ -68,7 +76,9 @@ namespace Anubis.Services
 
 			if(col.Exists(x=>x.Id == Id))
 			{
-				return col.IncludeAll().FindOne(x => x.Id == Id);
+				return col.Include(x=>x.Active)
+					.Include(x=>x.Subscriptions)
+					.FindOne(x => x.Id == Id);
 			}
 			else
 			{
@@ -101,7 +111,7 @@ namespace Anubis.Services
 		{
 			var col = Database.GetCollection<Character>("Characters");
 
-			col.Delete(x => x.Id == ch.Id);
+			col.Delete(ch.Id);
 		}
 		public void UpdateCharacter(Character ch)
 		{
@@ -114,7 +124,32 @@ namespace Anubis.Services
 			col.Update(U);
 
 		}
+		public Battle GetBattle(ulong channel)
+		{
+			var col = Database.GetCollection<Battle>("Battles");
+			if(!col.Exists(x=>x.ChannelId == channel))
+			{
+				col.Insert(new Battle()
+				{
+					ChannelId = channel
+				});
+			}
+			var battle = col.FindOne(x => x.ChannelId == channel);
 
+			return battle;
+		}
+		public Character FindCharacter(int Id)
+		{
+			var col = Database.GetCollection<Character>("Characters");
+			return col.FindOne(x => x.Id == Id);
+		}
+		public void UpdateBattle(Battle b)
+		{
+			var col = Database.GetCollection<Battle>("Battles");
+			col.Update(b);
+		}
+
+		#region Renders
 		public Embed RenderSheet(Character character)
 		{
 			var embed = new EmbedBuilder()
@@ -156,17 +191,17 @@ namespace Anubis.Services
 
 			sb.AppendLine("Species: " + character.Attributes["species"]);
 			sb.AppendLine("Trait: " + character.Attributes["trait"]);
-			sb.AppendLine("Knack: " + character.Attributes["trait"]);
-			sb.AppendLine("Advancement: " + character.Attributes["advance"]);
+			sb.AppendLine("Knack: " + character.Attributes["knack"]);
+			sb.AppendLine("Advancement: " + character.Attributes["advancement"]);
 			embed.AddField("Persona", sb.ToString(),true);
 			sb.Clear();
 
-			sb.AppendLine("Passive: " + (character.Passive == null ? "None" : character.Passive.Name));
-			sb.AppendLine("Dash: " + (character.Dash == null ? "None" : character.Dash.Name));
-			sb.AppendLine("Slot 1: " + (character.Slot1== null ? "None" : character.Slot1.Name));
-			sb.AppendLine("Slot 2: " + (character.Slot2== null ? "None" : character.Slot2.Name));
-			sb.AppendLine("Slot 3: " + (character.Slot3== null ? "None" : character.Slot3.Name));
-			sb.AppendLine("Slot 4: " + (character.Slot4 == null ? "None" : character.Slot4.Name));
+			sb.AppendLine(Icons.SheetIcons["passive"]+" " + (character.Passive == null ? "None" : character.Passive.Name));
+			sb.AppendLine(Icons.SheetIcons["dash"] + " " + (character.Dash == null ? "None" : character.Dash.Name));
+			sb.AppendLine(Icons.SheetIcons["slot1"] + " " + (character.Slot1== null ? "None" : character.Slot1.Name));
+			sb.AppendLine(Icons.SheetIcons["slot2"] + " " + (character.Slot2== null ? "None" : character.Slot2.Name));
+			sb.AppendLine(Icons.SheetIcons["slot3"] + " " + (character.Slot3== null ? "None" : character.Slot3.Name));
+			sb.AppendLine(Icons.SheetIcons["slot4"] + " " + (character.Slot4 == null ? "None" : character.Slot4.Name));
 
 			embed.AddField("Talents", sb.ToString(),true);
 			sb.Clear();
@@ -181,6 +216,108 @@ namespace Anubis.Services
 			embed.AddField("Inventory", sb.ToString(),true);
 
 			return embed.Build();
+		}
+		public Embed RenderBattle(Battle b, bool refreshmap = false)
+		{
+			var embed = new EmbedBuilder()
+				.WithTitle("Battle Summary")
+				.WithDescription("Round: " + b.Round);
+			var sb = new StringBuilder();
+			foreach (var c in b.Participants)
+			{
+				if (c == b.Current)
+				{
+					sb.AppendLine("[" + c.Initiative + "] **" + c.Name + "**");
+					if(c.Type == ParticipantType.Player)
+					{
+						var character = FindCharacter(c.Id);
+						sb.AppendLine("> Health: [" + character.Attributes["health"] + "/" + character.Attributes["maxhealth"] + "]");
+						sb.AppendLine("> Energy: [" + character.Attributes["energy"] + "/" + character.Attributes["maxenergy"] + "]");
+					}
+				}
+				else
+				{
+					sb.AppendLine("[" + c.Initiative + "] " + c.Name + "");
+
+				}
+			}
+			embed.AddField("Initiative", sb.ToString());
+			if (refreshmap)
+			{
+				RenderBattleMap(b);
+				embed.WithImageUrl($"attachment://battlemap-{b.ChannelId}.png");
+			}
+			else
+			{
+				embed.WithImageUrl($"attachment://battlemap-{b.ChannelId}.png");
+			}
+			return embed.Build();
+		}
+
+		public void RenderBattleMap(Battle b)
+		{
+			byte[] Battlemap = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "data", "battlemap.png"));
+
+			using (MemoryStream inStream = new MemoryStream(Battlemap))
+			{
+				using (MemoryStream outStream = new MemoryStream())
+				{
+					using (ImageFactory imageFactory = new ImageFactory(preserveExifData: true))
+					{
+						imageFactory.Load(inStream);
+
+						for(int i = 0; i < 9; i++)
+						{
+							for(int j = 0; j < Math.Min(5, b.Battlemap[i].Count); j++)
+							{
+								imageFactory.Overlay(new ImageLayer()
+								{
+									Image = PrepareToken(b.Battlemap[i][j].Token),
+									Opacity = 100,
+									Position = BattlemapPoints[i + "-" + j]
+								});
+							}
+						}
+						imageFactory.Format(new PngFormat { Quality = 100 });
+						imageFactory.Save(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", "battlemap-" + b.ChannelId + ".png"));
+					}
+				}
+			}
+		}
+		public System.Drawing.Image PrepareToken(string imageurl)
+		{
+			var img = DownloadImageFromUrl(imageurl);
+			var imageFactory = new ImageFactory(true);
+
+			imageFactory.Load(img);
+
+			imageFactory.Resize(new ResizeLayer(new Size(125, 150), ResizeMode.Min));
+			return imageFactory.Image;
+		}
+		public System.Drawing.Image DownloadImageFromUrl(string imageUrl)
+		{
+			System.Drawing.Image image = null;
+
+			try
+			{
+				System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(imageUrl);
+				webRequest.AllowWriteStreamBuffering = true;
+				webRequest.Timeout = 30000;
+
+				System.Net.WebResponse webResponse = webRequest.GetResponse();
+
+				System.IO.Stream stream = webResponse.GetResponseStream();
+
+				image = System.Drawing.Image.FromStream(stream);
+
+				webResponse.Close();
+			}
+			catch (Exception ex)
+			{
+				return null;
+			}
+
+			return image;
 		}
 		public string RenderItemName(Item item)
 		{
@@ -224,6 +361,24 @@ namespace Anubis.Services
 			sb.AppendLine(talent.Description);
 			return sb.ToString();
 		}
+		public string RenderAction(Models.Action action)
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine(action.Name);
+			sb.Append("(" + action.Type+" | " + action.Cost + " | ");
+			if (action.Skill != "none") sb.Append(" | " + action.Skill);
+			if (action.Range != "-") sb.Append(" | range " + action.Range);
+			sb.Append(")");
+			sb.Append("\n");
+			sb.AppendLine(action.Description);
+			return sb.ToString();
+		}
+		public Dictionary<Item, int> ParseInventory(List<Item> Inventory)
+		{
+			var final = Inventory.GroupBy(x => x).ToDictionary(y => y.Key,z=> z.Count());
+			return final;
+		}
+		#endregion
 		public string GetPrefix(ulong guild)
 		{
 			var col = Database.GetCollection<Server>("Servers");
@@ -232,11 +387,7 @@ namespace Anubis.Services
 
 			return g.Prefix;
 		}
-		public Dictionary<Item, int> ParseInventory(List<Item> Inventory)
-		{
-			var final = Inventory.GroupBy(x => x).ToDictionary(y => y.Key,z=> z.Count());
-			return final;
-		}
+		#region Queries
 		public Talent[] QueryTalent(string Name, User user)
 		{
 			var col = Database.GetCollection<ContentPack>("ContentPacks");
@@ -297,7 +448,7 @@ namespace Anubis.Services
 			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
 			return results;
 		}
-		public Models.Action[] QueryActions(string Name, User user)
+		public Models.Action[] QueryActions(string Name, User user, Character character)
 		{
 			var col = Database.GetCollection<ContentPack>("ContentPacks");
 			var CRB = col.FindOne(x => x.Id == 1);
@@ -306,9 +457,73 @@ namespace Anubis.Services
 			{
 				if (cp.Actions.Count() > 0) talents.AddRange(cp.Actions);
 			}
+			if (character.Dash != null) talents.Add(character.Dash);
+			if (character.Slot1 != null) talents.Add(character.Slot1);
+			if (character.Slot2 != null) talents.Add(character.Slot2);
+			if (character.Slot3 != null) talents.Add(character.Slot3);
+			if (character.Slot4 != null) talents.Add(character.Slot4);
+
 			var results = talents.Where(x => x.Name.ToLower().StartsWith(Name.ToLower())).ToArray();
 			return results;
 		}
+		#endregion
+
+		private Dictionary<string, Point> BattlemapPoints { get; set; } = new Dictionary<string, Point>()
+		{
+			{"0-0", new Point(857,12) },
+			{"0-1", new Point(657,212) },
+			{"0-2", new Point(857,212) },
+			{"0-3", new Point(1057,212) },
+			{"0-4", new Point(857,412) },
+			
+			{"1-0", new Point(579,181) },
+			{"1-1", new Point(379,381) },
+			{"1-2", new Point(579,381) },
+			{"1-3", new Point(779,381) },
+			{"1-4", new Point(579,281) },
+			
+			{"2-0", new Point(1141,198) },
+			{"2-1", new Point(941,330) },
+			{"2-2", new Point(1141,330) },
+			{"2-3", new Point(1341,330) },
+			{"2-4", new Point(1141,423) },
+			
+			{"3-0", new Point(279,361) },
+			{"3-1", new Point(79,561) },
+			{"3-2", new Point(279,561) },
+			{"3-3", new Point(479,561) },
+			{"3-4", new Point(279,761) },
+			
+			{"4-0", new Point(853,375) },
+			{"4-1", new Point(653,575) },
+			{"4-2", new Point(853,575) },
+			{"4-3", new Point(1053,575) },
+			{"4-4", new Point(853,757) },
+			
+			{"5-0", new Point(1419,364) },
+			{"5-1", new Point(1219,564) },
+			{"5-2", new Point(1419,564) },
+			{"5-3", new Point(1619,564) },
+			{"5-4", new Point(1419,764) },
+			
+			{"6-0", new Point(574,537) },
+			{"6-1", new Point(374,737) },
+			{"6-2", new Point(574,737) },
+			{"6-3", new Point(774,737) },
+			{"6-4", new Point(574,937) },
+			
+			{"7-0", new Point(1874,667) },
+			{"7-1", new Point(1674,867) },
+			{"7-2", new Point(1874,867) },
+			{"7-3", new Point(2074,867) },
+			{"7-4", new Point(1874,1067) },
+			
+			{"8-0", new Point(850,697) },
+			{"8-1", new Point(650,897) },
+			{"8-2", new Point(850,897) },
+			{"8-3", new Point(1050,897) },
+			{"8-4", new Point(850,1097) }
+		};
 	}
 	public static class Icons
 	{
@@ -399,7 +614,13 @@ namespace Anubis.Services
 			{"manipulate", "<:manipulate:722466457581256724>" },
 			{"Gearbit" ,"<:Gearbits:722835895321100330>"},
 			{"Component","<:component:722835895488741466>" },
-			{"Ingredient","<:ingredients:722835895253860364>" }
+			{"Ingredient","<:ingredients:722835895253860364>" },
+			{"passive","<:Passive_Talent:723536829734846515>" },
+			{"dash", "<:Dash_Talent:723536830053482507>" },
+			{"slot1","<:Talent_1:723536830019928076>" },
+			{"slot2","<:Talent_2:723536829764337725>" },
+			{"slot3","<:Talent_3:723536830149951618>" },
+			{"slot4","<:Talent_4:723536830183637093>" }
 		};
 	}
 }
