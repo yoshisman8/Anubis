@@ -99,11 +99,11 @@ namespace Anubis.Services
 
 			return user.Active;
 		}
-		public IEnumerable<Character> GetAllCharacters(ulong id)
+		public List<Character> GetAllCharacters(ulong id)
 		{
 			var col = Database.GetCollection<Character>("Characters");
 
-			var all = col.Find(x => x.Owner == id).ToList();
+			var all = col.Find(x => x.Owner == id).OrderBy(x=>x.Name).ToList();
 			if (all.Count == 0) return null;
 			else return all;
 		}

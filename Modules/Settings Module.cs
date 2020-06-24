@@ -42,6 +42,7 @@ namespace Anubis.Modules
 			sb.AppendLine("**Create** <Name> - Creates a new character.");
 			sb.AppendLine("**Character** <Name> - Switches your Active Character.");
 			sb.AppendLine("**Character** - Views your active character's sheet.");
+			sb.AppendLine("**Characters** - List all of your characters.");
 			sb.AppendLine("**Rename** <Name> <New Name> - Renames a character.");
 			sb.AppendLine("**Delete** <Name> - Deletes a character sheet.");
 
@@ -85,6 +86,11 @@ namespace Anubis.Modules
 			sb.AppendLine("\nYou can use the `Help combat` command to see more info about combat.");
 			embed.AddField("Combat Module", sb.ToString());
 			sb.Clear();
+
+			sb.AppendLine("**Prefix** <Prefix> - Changes the prefix for the bot on this server. Only people with the Manage Channel permission can use this command.");
+			sb.AppendLine("**Help** - Displays this message");
+			sb.AppendLine("**Help** <topic> - Displays help for specific topics");
+			embed.AddField("Misc Commands", sb.ToString());
 
 			await ReplyAsync(Context.User.Mention + ", Here are all commands available.", false, embed.Build());
 		}

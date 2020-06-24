@@ -314,5 +314,23 @@ namespace Anubis.Modules
 				}
 			}
 		}
+		[Command("List"),Alias("Characters")]
+		public async Task ListAll()
+		{
+			var chars = Utils.GetAllCharacters(Context.User.Id);
+			if(chars == null)
+			{
+				await ReplyAsync(Context.User.Mention + ", You have no characters.");
+				return;
+			}
+			var sb = new StringBuilder();
+
+			sb.AppendLine("Here are all your characters: ");
+			foreach (var x in chars)
+			{
+				sb.Append(x.Name + ",");
+			}
+			await ReplyAsync(Context.User.Mention + ", " + sb.ToString().Substring(0, sb.Length - 1));
+		}
 	} 
 }
