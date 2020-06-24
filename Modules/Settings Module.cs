@@ -36,7 +36,8 @@ namespace Anubis.Modules
 		public async Task Help()
 		{
 			var embed = new EmbedBuilder()
-				.WithTitle("Command List");
+				.WithTitle("Command List")
+				.WithDescription("Want to invite The Observier to your server? Click [here](https://discord.com/api/oauth2/authorize?client_id=717447842045755483&permissions=371776&scope=bot)!");
 			var sb = new StringBuilder();
 
 			sb.AppendLine("**Create** <Name> - Creates a new character.");
@@ -113,6 +114,13 @@ namespace Anubis.Modules
 					embed.AddField("Adding NPCs as the director", "As the director, you can add NPCs to the encounter by using the `AddNPC <Initiative> <Tile> <Token image URL> <Name>`. You *must* supply a token image in order to add an NPC. If you add two NPCs with the same name, the bot will overwritte the existing entry with the new one.");
 					embed.AddField("Playing", "Once comabt starts, the bot will ping the first person in initiative. The person whose turn it is (or the director) can use the `Next` command to end their turn and ping the next person in initiative.");
 					embed.AddField("Moving around", "You can move your character by using the `Move <Tile>` command. The Director can use the `Move <Tile> <Name>` command to move any participant to any tile.");
+					await ReplyAsync(Context.User.Mention + ", Here's more info on this topic.", false, embed.Build());
+					return;
+				case "character creation":
+					embed.WithDescription("Character creation is a simple process. To begin creating a character. Use the `Create <name>` command  to create the character entry.");
+					embed.AddField("Setting your attributes", "Once your character entry is created, you may want to set their attributes. You do this using the `Set <attribute> <Value>` command. The most important attributes you may want to set are `class`, `species`, `trait`, `knack`, and your discipline's fortune thresholds.");
+					embed.AddField("Setting your talents", "After you set your attributes you may want to set your talents. You can do this by using the `Talent <slot> <Name>` command. \n\n**Note**: If your table uses homebrew make sure you are subscribed to the content pack with said homebrew.");
+					embed.AddField("Adding items to inventory", "Lastly, you may want to set your items. This can be done using the `Item Add <name>` command to add any item to inventory.");
 					await ReplyAsync(Context.User.Mention + ", Here's more info on this topic.", false, embed.Build());
 					return;
 			}
