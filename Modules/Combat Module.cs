@@ -9,9 +9,11 @@ using Microsoft.VisualBasic;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -64,12 +66,22 @@ namespace Anubis.Modules
 							Utils.UpdateBattle(battle);
 
 						}
+						else if (battle.Ongoing && battle.Director == Context.User.Id && battle.Participants.Count == 0)
+						{
+							await ReplyAsync(Context.User.Mention + ", This encounter has no participants!");
+							return;
+						}
+						else if (battle.Ongoing && battle.Started && battle.Director == Context.User.Id)
+						{
+							await ReplyAsync(Context.User.Mention + ", You're already running an encounter! Use `" + Utils.GetPrefix(Context.Guild.Id) + "Encounter Stop` to stop the current one first.");
+							return;
+						}
 						else if (battle.Ongoing && battle.Director != Context.User.Id)
 						{
 							await ReplyAsync(Context.User.Mention + ", Someone else is already running a battle in this channel. To end it, use the command `" + Utils.GetPrefix(Context.Guild.Id) + "Encounter Stop`.");
 							return;
 						}
-						else
+						else 
 						{
 							battle.Battlemap = new List<Participant>[9];
 							for (int i = 0; i < 9; i++)
@@ -570,7 +582,7 @@ namespace Anubis.Modules
 		private Dictionary<int, string> TileNames { get; set; } = new Dictionary<int, string>()
 		{
 			{1, "The Upper Edge" },
-			{2, "The Weestern Flank" },
+			{2, "The Western Flank" },
 			{3, "The North Eastern Flank" },
 			{4, "The Outer Edge" },
 			{5, "The Heat" },

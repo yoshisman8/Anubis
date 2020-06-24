@@ -11,6 +11,9 @@ namespace Anubis.Models
 		[BsonId]
 		public int Id { get; set; }
 		public ulong Author { get; set; }
+		public string Name { get; set; }
+		public string Version { get; set; }
+		public string Tag { get; set; }
 		public Metadata Metadata { get; set; }
 		public List<Talent> Talents { get; set; } = new List<Talent>();
 		public List<GameClass> Classes { get; set; } = new List<GameClass>();

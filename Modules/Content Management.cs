@@ -66,16 +66,17 @@ namespace Anubis.Modules
 
 				var col = Database.GetCollection<ContentPack>("ContentPacks");
 
-				if (!col.Exists(x => x.Metadata.name == (string)json["metadata"]["name"] && x.Metadata.tag == (string)json["metadata"]["tag"]))
+				if (!col.Exists(x => x.Name == (string)json["metadata"]["name"] && x.Tag == (string)json["metadata"]["tag"] && x.Author == Context.User.Id))
 				{
 					var pack = new ContentPack()
 					{
-						Metadata = JsonConvert.DeserializeObject<Metadata>(json["metadata"].ToString()),
+						Name = (string)json["metadata"]["name"],
+						Tag = (string)json["metadata"]["tag"],
 						Author = Context.User.Id
 					};
 					col.Insert(pack);
 				}
-				var p = col.FindOne(x => x.Metadata.name == (string)json["metadata"]["name"] && x.Metadata.tag == (string)json["metadata"]["tag"] && x.Author == Context.User.Id);
+				var p = col.FindOne(x => x.Name == (string)json["metadata"]["name"] && x.Tag == (string)json["metadata"]["tag"] && x.Author == Context.User.Id);
 
 
 				
@@ -676,7 +677,8 @@ namespace Anubis.Modules
 
 				p.Metadata = JsonConvert.DeserializeObject<Metadata>(json["metadata"].ToString());
 				col.Update(p);
-				col.EnsureIndex("ContentPack", "LOWER($.Metadata.name)");
+				col.EnsureIndex(x => x.Name.ToLower());
+				col.EnsureIndex("ContentPack", "LOWER($.Name)");
 				var user = Utils.GetUser(Context.User.Id);
 				if(!user.Subscriptions.Exists(x=> x.Id == p.Id))
 				{
@@ -1358,8 +1360,8 @@ namespace Anubis.Modules
 
 			var col = Database.GetCollection<ContentPack>("ContentPacks");
 
-			var packs = col.Find(x => x.Metadata.name.StartsWith(name.ToLower()));
-			packs = packs.OrderBy(x => x.Metadata.name);
+			var packs = col.Find(x => x.Name.StartsWith(name.ToLower()));
+			packs = packs.OrderBy(x => x.Name);
 
 			if (packs.Count() == 0)
 			{

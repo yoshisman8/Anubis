@@ -280,6 +280,7 @@ namespace Anubis.Services
 						}
 						imageFactory.Format(new PngFormat { Quality = 100 });
 						imageFactory.Save(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", "battlemap-" + b.ChannelId + ".png"));
+						imageFactory.Dispose();
 					}
 				}
 			}
