@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Reflection.Metadata;
 using static Anubis.Models.Constants;
 using System.IO.Pipes;
+using Discord;
 
 namespace Anubis.Modules
 {
@@ -75,6 +76,10 @@ namespace Anubis.Modules
 						Author = Context.User.Id
 					};
 					col.Insert(pack);
+					col.EnsureIndex(x => x.Name);
+					col.EnsureIndex("contentpack", "LOWER($.Name)");
+					col.EnsureIndex(x => x.Tag);
+					col.EnsureIndex(x => x.Author);
 				}
 				var p = col.FindOne(x => x.Name == (string)json["metadata"]["name"] && x.Tag == (string)json["metadata"]["tag"] && x.Author == Context.User.Id);
 
@@ -677,7 +682,9 @@ namespace Anubis.Modules
 
 				p.Metadata = JsonConvert.DeserializeObject<Metadata>(json["metadata"].ToString());
 				col.Update(p);
-				col.EnsureIndex("ContentPack", "LOWER($.Name)");
+				col.EnsureIndex(x => x.Name, "LOWER($.Name)",false);
+				col.EnsureIndex(x => x.Tag);
+				col.EnsureIndex(x => x.Author);
 				var user = Utils.GetUser(Context.User.Id);
 				if(!user.Subscriptions.Exists(x=> x.Id == p.Id))
 				{
@@ -1359,7 +1366,7 @@ namespace Anubis.Modules
 
 			var col = Database.GetCollection<ContentPack>("ContentPacks");
 
-			var packs = col.Find(x => x.Name.StartsWith(name.ToLower()));
+			var packs = col.Find(x => x.Name.StartsWith(name));
 			packs = packs.OrderBy(x => x.Name);
 
 			if (packs.Count() == 0)
@@ -1367,10 +1374,10 @@ namespace Anubis.Modules
 				await ReplyAsync(Context.User.Mention + ", there are no content packs with that name.");
 				return;
 			}
-			else if (packs.Count() == 1 && packs.FirstOrDefault().Metadata.name.ToLower() == name.ToLower())
+			else if (packs.Count() == 1)
 			{
 				var p = packs.FirstOrDefault();
-				if (user.Subscriptions.Contains(p))
+				if (user.Subscriptions.Exists(x=>x.Id == p.Id))
 				{
 					await ReplyAsync(Context.User.Mention + ", You're already subscribed to this content pack.");
 					return;
@@ -1389,7 +1396,7 @@ namespace Anubis.Modules
 				sb.AppendLine(Context.User.Mention + ", Multiple content packs where found. Please respond with the number of the pack you wish to subscribe to:");
 				for(int i = 0; i < packs.Count(); i++)
 				{
-					sb.AppendLine("`[" + i + "]` " + packs.ElementAt(i).Metadata.name);
+					sb.AppendLine("`[" + i + "]` " + packs.ElementAt(i).Name);
 				}
 				var msg = await ReplyAsync(sb.ToString());
 
@@ -1426,7 +1433,7 @@ namespace Anubis.Modules
 
 						}
 						var p = packs.ElementAt(index);
-						if (user.Subscriptions.Contains(p))
+						if (user.Subscriptions.Exists(x => x.Id == p.Id))
 						{
 							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You're already subscribed to this content pack.");
 							return;
@@ -1460,7 +1467,7 @@ namespace Anubis.Modules
 		{
 			var user = Utils.GetUser(Context.User.Id);
 
-			var packs = user.Subscriptions.Where(x => x.Metadata.name.StartsWith(name.ToLower()));
+			var packs = user.Subscriptions.Where(x => x.Name.ToLower().StartsWith(name.ToLower()));
 			packs = packs.OrderBy(x => x.Metadata.name);
 
 			if (packs.Count() == 0)
