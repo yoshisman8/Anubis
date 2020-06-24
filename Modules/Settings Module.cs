@@ -69,6 +69,7 @@ namespace Anubis.Modules
 			sb.AppendLine("**Check** <Discipline> - Perform a Discipline check.");
 			sb.AppendLine("*Roll** <Dice Expression> - Roll dice.");
 			sb.AppendLine("**Act** <Talent> - Display and roll for a talent.");
+			sb.AppendLine("**Rest** - Start a new Scene and recover 6 energy and recharge all usable items.");
 
 			embed.AddField("Gameplay Module", sb.ToString());
 			sb.Clear();

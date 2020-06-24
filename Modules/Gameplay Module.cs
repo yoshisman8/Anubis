@@ -553,7 +553,32 @@ namespace Anubis.Modules
 			}
 		}
 		
-		
+		[Command("Rest"), Alias("Scene")]
+		public async Task Rest()
+		{
+			var u = Utils.GetUser(Context.User.Id);
+
+			if (u.Active == null)
+			{
+				await ReplyAsync(Context.User.Mention + ", you have no active character.");
+				return;
+			}
+			var c = u.Active;
+
+			int en = int.Parse(c.Attributes["energy"]);
+			int enm = int.Parse(c.Attributes["maxenergy"]);
+
+			if (en + 6 > enm) c.Attributes["energy"] = enm.ToString();
+			else c.Attributes["energy"] = (en + 6).ToString();
+
+			foreach (var i in c.Inventory.Where(x => x.Type == "usable"))
+			{
+				int index = c.Inventory.IndexOf(i);
+				c.Inventory[index].Used = 0;
+			}
+			Utils.UpdateCharacter(c);
+			await ReplyAsync(Context.User.Mention + ", " + c.Name + " has started a new Scene. Energy refilled by 6 and all usable items have recharged.");
+		}
 		
 		private string ParseResult(RollResult result)
 		{
