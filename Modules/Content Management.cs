@@ -677,7 +677,6 @@ namespace Anubis.Modules
 
 				p.Metadata = JsonConvert.DeserializeObject<Metadata>(json["metadata"].ToString());
 				col.Update(p);
-				col.EnsureIndex(x => x.Name.ToLower());
 				col.EnsureIndex("ContentPack", "LOWER($.Name)");
 				var user = Utils.GetUser(Context.User.Id);
 				if(!user.Subscriptions.Exists(x=> x.Id == p.Id))
