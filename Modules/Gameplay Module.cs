@@ -7,6 +7,7 @@ using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -216,6 +217,47 @@ namespace Anubis.Modules
 			}
 		}
 
+		[Command("Check")]
+		public async Task Discipline([Remainder]string Discipline)
+		{
+			var u = Utils.GetUser(Context.User.Id);
+
+			if (u.Active == null)
+			{
+				await ReplyAsync(Context.User.Mention + ", you have no active character.");
+				return;
+			}
+			var c = u.Active;
+			if (!Disciplines.Contains(Discipline))
+			{
+				await ReplyAsync(Context.User.Mention + ", This isn't a valid Discipline");
+				return;
+			}
+			var dice = Roller.Roll("1d20");
+			var embed = new EmbedBuilder()
+				.WithTitle(c.Name + " makes a " + Discipline + " check.")
+				.WithThumbnailUrl(c.Attributes["image"]);
+			var fortune = int.Parse(c.Attributes[Discipline]);
+			var judgement = int.Parse(c.Attributes[Discipline + "_judgement"]);
+
+
+			if (dice.Value <= judgement)
+			{
+				embed.WithColor(Color.Red);
+				embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+			}
+			else if (dice.Value >= fortune)
+			{
+				embed.WithColor(Color.Green);
+				embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+			}
+			else
+			{
+				embed.WithColor(new Color(255, 255, 0));
+				embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temeprance)");
+			}
+			await ReplyAsync(" ", false, embed.Build());
+		}
 		[Command("Roll"), Alias("R", "Dice")]
 		[Summary("Make a dice roll.")]
 		public async Task Roll([Remainder] string Expression)
@@ -587,5 +629,6 @@ namespace Anubis.Modules
 
 			return sb.ToString().Trim();
 		}
+		private string[] Disciplines = { "combat", "manipulate", "social", "exploration", "survival" };
 	}
 }

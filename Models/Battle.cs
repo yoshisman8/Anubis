@@ -18,14 +18,23 @@ namespace Anubis.Models
 		public bool MapChanged { get; set; } = false;
 		public ulong Director { get; set; }
 	}
-	public class Participant
+	public struct Participant
 	{
 		public string Name { get; set; }
 		public ulong Player { get; set; }
 		public int Initiative { get; set; }
-		public string Token { get; set; } = "https://media.discordapp.net/attachments/722857470657036299/725046172175171645/defaulttoken.png";
+		public string Token { get; set; }
 		public int Id { get; set; }
-		public ParticipantType Type { get; set; } = ParticipantType.NPC;
+		public ParticipantType Type { get; set; } 
+
+		public static bool operator ==(Participant p1, Participant p2)
+		{
+			return p1.Equals(p2);
+		}
+		public static bool operator !=(Participant p1, Participant p2)
+		{
+			return !p1.Equals(p2);
+		}
 	}
 	public enum ParticipantType { Player, NPC }
 }

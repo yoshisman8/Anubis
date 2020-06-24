@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Anubis.Modules
 		public Utilities Utils { get; set; }
 		public LiteDatabase Database { get; set; }
 
-		[Command("Encounter"), Alias("Combat","Battle")]
+		[Command("Encounter"), Alias("Combat", "Battle","Enc")]
 		[RequireContext(ContextType.Guild)]
 		public async Task Encounter(EncounterCommand command = EncounterCommand.Info)
 		{
@@ -39,7 +40,7 @@ namespace Anubis.Modules
 						}
 						if (battle.MapChanged)
 						{
-							await Context.Channel.SendFileAsync(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", "battlemap-" + Context.Channel.Id + ".png"), " ", false, Utils.RenderBattle(battle,true));
+							await Context.Channel.SendFileAsync(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", "battlemap-" + Context.Channel.Id + ".png"), " ", false, Utils.RenderBattle(battle, true));
 							battle.MapChanged = false;
 							Utils.UpdateBattle(battle);
 							return;
@@ -63,7 +64,7 @@ namespace Anubis.Modules
 							Utils.UpdateBattle(battle);
 
 						}
-						else if(battle.Ongoing && battle.Director != Context.User.Id)
+						else if (battle.Ongoing && battle.Director != Context.User.Id)
 						{
 							await ReplyAsync(Context.User.Mention + ", Someone else is already running a battle in this channel. To end it, use the command `" + Utils.GetPrefix(Context.Guild.Id) + "Encounter Stop`.");
 							return;
@@ -71,7 +72,7 @@ namespace Anubis.Modules
 						else
 						{
 							battle.Battlemap = new List<Participant>[9];
-							for(int i = 0; i < 9; i++)
+							for (int i = 0; i < 9; i++)
 							{
 								battle.Battlemap[i] = new List<Participant>();
 							}
@@ -79,7 +80,7 @@ namespace Anubis.Modules
 							battle.Participants = new List<Participant>();
 							battle.Round = 0;
 							battle.Ongoing = true;
-							battle.Current = null;
+							battle.Current = new Participant();
 							battle.MapChanged = false;
 							Utils.UpdateBattle(battle);
 							var file = Path.Combine(Directory.GetCurrentDirectory(), "data", "battlemap.png");
@@ -96,7 +97,7 @@ namespace Anubis.Modules
 					}
 				case 2:
 					{
-						if(battle.Ongoing)
+						if (battle.Ongoing)
 						{
 							battle.Ongoing = false;
 							battle.Started = false;
@@ -117,7 +118,7 @@ namespace Anubis.Modules
 			}
 
 		}
-		[Command("Initiative"), Alias("Join","init")]
+		[Command("Initiative"), Alias("Join", "init")]
 		[RequireContext(ContextType.Guild)]
 		public async Task Join(int Tile)
 		{
@@ -143,7 +144,7 @@ namespace Anubis.Modules
 			}
 
 
-			int init = (int) Roller.Roll("1d20 + " + c.Attributes["agility"]).Value;
+			int init = (int)Roller.Roll("1d20 + " + c.Attributes["agility"]).Value;
 			if (b.Participants.Exists(x => x.Id == c.Id))
 			{
 				var i = b.Participants.FindIndex(x => x.Id == c.Id);
@@ -156,7 +157,7 @@ namespace Anubis.Modules
 					Name = c.Name,
 					Token = (c.Attributes["token"].NullorEmpty() ? (c.Attributes["image"].NullorEmpty() ? "https://media.discordapp.net/attachments/722857470657036299/725046172175171645/defaulttoken.png" : c.Attributes["image"]) : c.Attributes["token"])
 				};
-				b.Participants[i] =  token;
+				b.Participants[i] = token;
 				for (int j = 0; j < 9; j++)
 				{
 					if (b.Battlemap[j].Exists(x => x.Id == c.Id))
@@ -165,11 +166,11 @@ namespace Anubis.Modules
 						b.Battlemap[j].Remove(ti);
 					}
 				}
-				b.Battlemap[Tile-1].Add(token);
+				b.Battlemap[Tile - 1].Add(token);
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
 				b.MapChanged = true;
 				Utils.UpdateBattle(b);
-				await ReplyAsync(Context.User.Mention + ", " + c.Name + " joined the encounter on "+ TileNames[Tile]+ " with an initiative roll of `" + init + "`!");
+				await ReplyAsync(Context.User.Mention + ", " + c.Name + " joined the encounter on " + TileNames[Tile] + " with an initiative roll of `" + init + "`!");
 			}
 			else
 			{
@@ -183,7 +184,7 @@ namespace Anubis.Modules
 					Token = (c.Attributes["token"].NullorEmpty() ? (c.Attributes["image"].NullorEmpty() ? "https://media.discordapp.net/attachments/722857470657036299/725046172175171645/defaulttoken.png" : c.Attributes["image"]) : c.Attributes["token"])
 				};
 				b.Participants.Add(token);
-				b.Battlemap[Tile-1].Add(token);
+				b.Battlemap[Tile - 1].Add(token);
 				b.MapChanged = true;
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
 				Utils.UpdateBattle(b);
@@ -197,7 +198,7 @@ namespace Anubis.Modules
 			var b = Utils.GetBattle(Context.Channel.Id);
 			if (!b.Ongoing)
 			{
-				await ReplyAsync(Context.User.Mention+", There is no encounter happening on this channel. Start one with `!Encounter Start`");
+				await ReplyAsync(Context.User.Mention + ", There is no encounter happening on this channel. Start one with `!Encounter Start`");
 				return;
 			}
 			if (b.Ongoing && b.Director != Context.User.Id)
@@ -230,7 +231,7 @@ namespace Anubis.Modules
 						b.Battlemap[j].Remove(ti);
 					}
 				}
-				b.Battlemap[Tile-1].Add(token);
+				b.Battlemap[Tile - 1].Add(token);
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
 				b.MapChanged = true;
 				Utils.UpdateBattle(b);
@@ -247,14 +248,14 @@ namespace Anubis.Modules
 					Token = tokenurl
 				};
 				b.Participants.Add(token);
-				b.Battlemap[Tile-1].Add(token);
+				b.Battlemap[Tile - 1].Add(token);
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
 				b.MapChanged = true;
 				Utils.UpdateBattle(b);
 				await ReplyAsync(Context.User.Mention + ", Added NPC " + Name + " to the encounter on " + TileNames[Tile] + " with an initiative of `" + initiative + "`!");
 			}
 		}
-		
+
 		[Command("Remove")]
 		[RequireContext(ContextType.Guild)]
 		public async Task RemoveNPC([Remainder] string name)
@@ -271,7 +272,7 @@ namespace Anubis.Modules
 				return;
 			}
 			var participants = b.Participants.Where(x => x.Name.ToLower().StartsWith(name.ToLower())).ToArray();
-			if(participants.Length == 0)
+			if (participants.Length == 0)
 			{
 				await ReplyAsync(Context.User.Mention + ", There are no participants with that name in this encounter.");
 				return;
@@ -279,9 +280,9 @@ namespace Anubis.Modules
 			if (participants.Length == 1)
 			{
 				var p = participants[0];
-				if(b.Current == p)
+				if (b.Current == p)
 				{
-					TickTurn(b);
+					TickTurn(ref b);
 				}
 				b.Participants.Remove(p);
 				for (int j = 0; j < 9; j++)
@@ -333,7 +334,7 @@ namespace Anubis.Modules
 						var p = participants[index];
 						if (b.Current == p)
 						{
-							TickTurn(b);
+							TickTurn(ref b);
 						}
 						b.Participants.Remove(p);
 						for (int j = 0; j < 9; j++)
@@ -365,7 +366,7 @@ namespace Anubis.Modules
 				}
 			}
 		}
-		[Command("Next"),Alias("Turn")]
+		[Command("Next"), Alias("Turn")]
 		[RequireContext(ContextType.Guild)]
 		public async Task Turn()
 		{
@@ -380,12 +381,12 @@ namespace Anubis.Modules
 				await ReplyAsync(Context.User.Mention + ", This encounter hasn't started yet!. Start it with `!Encounter Start`");
 				return;
 			}
-			if(b.Current.Player != Context.User.Id && b.Director != Context.User.Id)
+			if (b.Current.Player != Context.User.Id && b.Director != Context.User.Id)
 			{
 				await ReplyAsync(Context.User.Mention + ", It's not your turn!");
 				return;
 			}
-			b = TickTurn(b);
+			TickTurn(ref b);
 			Utils.UpdateBattle(b);
 			var user = Context.Guild.GetUser(b.Current.Player);
 			if (b.MapChanged)
@@ -401,11 +402,161 @@ namespace Anubis.Modules
 				return;
 			}
 		}
+		[Command("Move")][RequireContext(ContextType.Guild)]
+		public async Task Move(int Tile)
+		{
+			Tile = Math.Abs(Tile);
+			var b = Utils.GetBattle(Context.Channel.Id);
+			if (!b.Ongoing)
+			{
+				await ReplyAsync(Context.User.Mention + ", There is no encounter happening on this channel. Start one with `!Encounter Start`");
+				return;
+			}
+			var u = Utils.GetUser(Context.User.Id);
+
+			if (u.Active == null)
+			{
+				await ReplyAsync(Context.User.Mention + ", you have no active character.");
+				return;
+			}
+			var c = u.Active;
+			if (Tile > 9 || Tile < 1)
+			{
+				await ReplyAsync(Context.User.Mention + ", you're moving to an invalid tile (valid numbers are 1-9).");
+				return;
+			}
+			if(!b.Participants.Exists(x=> x.Id == c.Id))
+			{
+				await ReplyAsync(Context.User.Mention + ", " + c.Name + " Isn't participating in this Encounter.");
+				return;
+			}
+			var token = b.Participants.Find(x => x.Id == c.Id);
+			for (int j = 0; j < 9; j++)
+			{
+				if (b.Battlemap[j].Exists(x => x.Id == c.Id))
+				{
+					var ti = b.Battlemap[j].Find(x => x.Id == c.Id);
+					b.Battlemap[j].Remove(ti);
+				}
+			}
+			b.Battlemap[Tile - 1].Add(token);
+			b.MapChanged = true;
+			Utils.UpdateBattle(b);
+			await ReplyAsync(Context.User.Mention + ", " + c.Name + " moved to " + TileNames[Tile] + "!");
+		}
 		
-		private Battle TickTurn(Battle b)
+		[Command("Move")]
+		[RequireContext(ContextType.Guild)]
+		public async Task moveNPC(int Tile, [Remainder] string name)
+		{
+			Tile = Math.Abs(Tile);
+			var b = Utils.GetBattle(Context.Channel.Id);
+			if (!b.Ongoing)
+			{
+				await ReplyAsync(Context.User.Mention + ", There is no encounter happening on this channel. Start one with `!Encounter Start`");
+				return;
+			}
+			if (b.Ongoing && b.Director != Context.User.Id)
+			{
+				await ReplyAsync(Context.User.Mention + ", You are not the director for this encounter.");
+				return;
+			}
+			if (Tile > 9 || Tile < 1)
+			{
+				await ReplyAsync(Context.User.Mention + ", you're moving to an invalid tile (valid numbers are 1-9).");
+				return;
+			}
+			var participants = b.Participants.Where(x => x.Name.ToLower().StartsWith(name.ToLower())).ToArray();
+			if (participants.Length == 0)
+			{
+				await ReplyAsync(Context.User.Mention + ", There are no participants with that name in this encounter.");
+				return;
+			}
+			if (participants.Length == 1)
+			{
+				var p = participants[0];
+				for (int j = 0; j < 9; j++)
+				{
+					if (b.Battlemap[j].Exists(x => x.Name == p.Name))
+					{
+						var ti = b.Battlemap[j].Find(x => x.Name == p.Name);
+						b.Battlemap[j].Remove(ti);
+					}
+				}
+				b.Battlemap[Tile - 1].Add(p);
+				b.MapChanged = true;
+				Utils.UpdateBattle(b);
+				await ReplyAsync(Context.User.Mention + ", " + p.Name + " moved to "+TileNames[Tile] +".");
+				return;
+			}
+			else
+			{
+				var sb = new StringBuilder();
+				for (int i = 0; i < participants.Length; i++)
+				{
+					sb.AppendLine("`[" + i + "]` " + participants[i].Name);
+				}
+				var msg = await ReplyAsync(Context.User.Mention + ", More than one participant was found. Please respond with the number that matches the participant you wish to remove:\n" + sb.ToString());
+
+				var reply = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
+
+				if (reply == null)
+				{
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+					return;
+				}
+				if (int.TryParse(reply.Content, out int index))
+				{
+					if (Math.Abs(index) >= participants.Length)
+					{
+						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+						try
+						{
+							await reply.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						return;
+					}
+					else
+					{
+						var p = participants[index];
+						for (int j = 0; j < 9; j++)
+						{
+							if (b.Battlemap[j].Exists(x => x.Name == p.Name))
+							{
+								var ti = b.Battlemap[j].Find(x => x.Name == p.Name);
+								b.Battlemap[j].Remove(ti);
+							}
+						}
+						b.Battlemap[Tile - 1].Add(p);
+						b.MapChanged = true;
+						Utils.UpdateBattle(b);
+						await ReplyAsync(Context.User.Mention + ", " + p.Name + " moved to " + TileNames[Tile] + ".");
+						try
+						{
+							await reply.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						return;
+					}
+				}
+				else
+				{
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+					return;
+				}
+			}
+		}
+		private void TickTurn(ref Battle b)
 		{
 			int i = b.Participants.IndexOf(b.Current);
-			if(i + 1 > b.Participants.Count)
+			if(i + 1 >= b.Participants.Count)
 			{
 				b.Current = b.Participants.First();
 				b.Round++;
@@ -414,7 +565,6 @@ namespace Anubis.Modules
 			{
 				b.Current = b.Participants[i + 1];
 			}
-			return b;
 		}
 		public enum EncounterCommand { Info = 0, Start = 1, Begin = 1, New = 1,End = 2, Stop = 2, Finish = 2};
 		private Dictionary<int, string> TileNames { get; set; } = new Dictionary<int, string>()
