@@ -471,32 +471,44 @@ namespace Anubis.Services
 
 
 		private int horizontalDistance = 200;
-		private int verticalDistance = 125;
-		private Dictionary<int, Point> OrignPoints { get; set; } = new Dictionary<int, Point>()
-		{
-			{0, new Point(857,12) },
-			{1, new Point(579,181) },
-			{2, new Point(1141,198) },
-			{3, new Point(279,361) },
-			{4, new Point(853,375) },
-			{5, new Point(1419,364) },
-			{6, new Point(574,537) },
-			{7, new Point(1874,667) },
-			{8, new Point(850,697) }
-
-		};
+		private int verticalDistance = 115;
+		private int horizontalTileDistance = 280;
+		private int verticalTileDistance = 175;
 
 		private Point GetPoint(int tile, int subtile)
 		{
-			// Sub-Tile 0 (^): Origin
-			// Sub-Tile 1 (<): -200, +125
-			// Sub-Tile 2 (.): 0, +125
-			// Sub-Tile 3 (>): +200, +250
-			// Sub-Tile 4 (v): 0, +125
+			Point O = new Point(857, 12);
 
-
-			Point O = OrignPoints[tile];
-
+			switch (tile)
+			{
+				case 0:
+					break;
+				case 1:
+					O = new Point(O.X - horizontalTileDistance, O.Y + verticalTileDistance);
+					break;
+				case 2:
+					O = new Point(O.X + horizontalTileDistance, O.Y + verticalTileDistance);
+					break;
+				case 3:
+					O = new Point(O.X - (horizontalTileDistance *2), O.Y + (verticalTileDistance * 2));
+					break;
+				case 4:
+					O = new Point(O.X, O.Y + verticalTileDistance *2);
+					break;
+				case 5:
+					O = new Point(O.X + (horizontalTileDistance * 2), O.Y + (verticalTileDistance * 2));
+					break;
+				case 6:
+					O = new Point(O.X - horizontalTileDistance, O.Y + (verticalTileDistance * 3));
+					break;
+				case 7:
+					O = new Point(O.X + horizontalTileDistance, O.Y + (verticalTileDistance * 3));
+					break;
+				case 8:
+					O = new Point(O.X, O.Y + (verticalTileDistance * 4));
+					break;
+				
+			}
 
 
 			switch (subtile)
