@@ -471,7 +471,7 @@ namespace Anubis.Services
 
 
 		private int horizontalDistance = 200;
-		private int verticalDistance = 150;
+		private int verticalDistance = 125;
 		private Dictionary<int, Point> OrignPoints { get; set; } = new Dictionary<int, Point>()
 		{
 			{0, new Point(857,12) },
@@ -489,10 +489,10 @@ namespace Anubis.Services
 		private Point GetPoint(int tile, int subtile)
 		{
 			// Sub-Tile 0 (^): Origin
-			// Sub-Tile 1 (<): -200, +150
-			// Sub-Tile 2 (.): 0, +150
-			// Sub-Tile 3 (>): +200, +150
-			// Sub-Tile 4 (v): 0, +300
+			// Sub-Tile 1 (<): -200, +125
+			// Sub-Tile 2 (.): 0, +125
+			// Sub-Tile 3 (>): +200, +250
+			// Sub-Tile 4 (v): 0, +125
 
 
 			Point O = OrignPoints[tile];
