@@ -274,7 +274,7 @@ namespace Anubis.Services
 								{
 									Image = PrepareToken(b.Battlemap[i][j].Token),
 									Opacity = 100,
-									Position = BattlemapPoints[i + "-" + j]
+									Position = GetPoint(i,j)
 								});
 							}
 						}
@@ -469,62 +469,52 @@ namespace Anubis.Services
 		}
 		#endregion
 
-		private Dictionary<string, Point> BattlemapPoints { get; set; } = new Dictionary<string, Point>()
+
+		private int horizontalDistance = 200;
+		private int verticalDistance = 150;
+		private Dictionary<int, Point> OrignPoints { get; set; } = new Dictionary<int, Point>()
 		{
-			{"0-0", new Point(857,12) },
-			{"0-1", new Point(657,137) },
-			{"0-2", new Point(857,137) },
-			{"0-3", new Point(1057,137) },
-			{"0-4", new Point(857,262) },
-			
-			{"1-0", new Point(579,181) },
-			{"1-1", new Point(379,306) },
-			{"1-2", new Point(579,306) },
-			{"1-3", new Point(779,306) },
-			{"1-4", new Point(579,431) },
-			
-			{"2-0", new Point(1141,198) },
-			{"2-1", new Point(941,323) },
-			{"2-2", new Point(1141,323) },
-			{"2-3", new Point(1341,323) },
-			{"2-4", new Point(1141,448) },
-			
-			{"3-0", new Point(279,361) },
-			{"3-1", new Point(79,486) },
-			{"3-2", new Point(279,486) },
-			{"3-3", new Point(479,486) },
-			{"3-4", new Point(279,611) },
-			
-			{"4-0", new Point(853,375) },
-			{"4-1", new Point(653,500) },
-			{"4-2", new Point(853,500) },
-			{"4-3", new Point(1053,500) },
-			{"4-4", new Point(853,625) },
-			
-			{"5-0", new Point(1419,364) },
-			{"5-1", new Point(1219,489) },
-			{"5-2", new Point(1419,489) },
-			{"5-3", new Point(1619,489) },
-			{"5-4", new Point(1419,614) },
-			
-			{"6-0", new Point(574,537) },
-			{"6-1", new Point(374,662) },
-			{"6-2", new Point(574,662) },
-			{"6-3", new Point(774,662) },
-			{"6-4", new Point(574,787) },
-			
-			{"7-0", new Point(1874,667) },
-			{"7-1", new Point(1674,792) },
-			{"7-2", new Point(1874,792) },
-			{"7-3", new Point(2074,792) },
-			{"7-4", new Point(1874,917) },
-			
-			{"8-0", new Point(850,697) },
-			{"8-1", new Point(650,882) },
-			{"8-2", new Point(850,882) },
-			{"8-3", new Point(1050,882) },
-			{"8-4", new Point(850,947) }
+			{0, new Point(857,12) },
+			{1, new Point(579,181) },
+			{2, new Point(1141,198) },
+			{3, new Point(279,361) },
+			{4, new Point(853,375) },
+			{5, new Point(1419,364) },
+			{6, new Point(574,537) },
+			{7, new Point(1874,667) },
+			{8, new Point(850,697) }
+
 		};
+
+		private Point GetPoint(int tile, int subtile)
+		{
+			// Sub-Tile 0 (^): Origin
+			// Sub-Tile 1 (<): -200, +150
+			// Sub-Tile 2 (.): 0, +150
+			// Sub-Tile 3 (>): +200, +150
+			// Sub-Tile 4 (v): 0, +300
+
+
+			Point O = OrignPoints[tile];
+
+
+
+			switch (subtile)
+			{
+				case 0:
+					return O;
+				case 1:
+					return new Point(O.X - horizontalDistance, O.Y + verticalDistance);
+				case 2:
+					return new Point(O.X, O.Y + verticalDistance);
+				case 3:
+					return new Point(O.X + horizontalDistance, O.Y + verticalDistance);
+				case 4:
+					return new Point(O.X, O.Y + (verticalDistance *2));
+			}
+			return O;
+		}
+
 	}
 	public static class Icons
 	{
