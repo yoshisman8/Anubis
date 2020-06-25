@@ -140,6 +140,14 @@ namespace Anubis.Modules
 					}
 					else
 					{
+						if(Attribute.ToLower() == "image" || Attribute.ToLower() == "token")
+						{
+							if (!value.IsImageUrl())
+							{
+								await ReplyAsync(Context.User.Mention + ", this isn't a valid image url.");
+								return;
+							}
+						}
 						c.Attributes[Attribute.ToLower()] = value;
 						Utils.UpdateCharacter(c);
 						await ReplyAsync(Context.User.Mention + ", Changed attribute '" + Attribute.ToLower() + "' to `" + value + "`.");

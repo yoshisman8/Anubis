@@ -223,6 +223,11 @@ namespace Anubis.Modules
 				await ReplyAsync(Context.User.Mention + ", you're joining an invalid tile (valid numbers are 1-9).");
 				return;
 			}
+			if (!tokenurl.IsImageUrl())
+			{
+				await ReplyAsync(Context.User.Mention + ", this isn't a valid image url.");
+				return;
+			}
 			if (b.Participants.Exists(x => x.Name.ToLower() == Name.ToLower()))
 			{
 				var i = b.Participants.FindIndex(x => x.Name.ToLower() == Name.ToLower());
