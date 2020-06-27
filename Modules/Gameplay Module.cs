@@ -588,7 +588,7 @@ namespace Anubis.Modules
 						.WithThumbnailUrl(c.Attributes["image"])
 						.AddField("Action", Utils.RenderAction(act));
 					var skills = act.Skill.Split(',');
-					if (skills.Length == 1 && skills[0] != "none")
+					if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
 					{
 						var dice = Roller.Roll("1d20");
 						var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
