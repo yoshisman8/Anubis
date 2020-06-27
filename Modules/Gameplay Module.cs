@@ -370,7 +370,7 @@ namespace Anubis.Modules
 								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
 						}
-						await msg.ModifyAsync(x => x.Content = " ");
+						await msg.ModifyAsync(x => x.Content = ".");
 						await msg.ModifyAsync(x => x.Embed = embed.Build());
 					}
 					else if (skills.Length > 1)
@@ -428,7 +428,7 @@ namespace Anubis.Modules
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
 
-								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Content = ".");
 								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
@@ -522,7 +522,7 @@ namespace Anubis.Modules
 								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
 						}
-						await msg.ModifyAsync(x => x.Content = " ");
+						await msg.ModifyAsync(x => x.Content = ".");
 						await msg.ModifyAsync(x => x.Embed = embed.Build());
 					}
 					else if (skills.Length > 1)
@@ -580,7 +580,7 @@ namespace Anubis.Modules
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
 
-								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Content = ".");
 								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
@@ -672,7 +672,7 @@ namespace Anubis.Modules
 								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
 						}
-						await msg.ModifyAsync(x => x.Content = " ");
+						await msg.ModifyAsync(x => x.Content = ".");
 						await msg.ModifyAsync(x => x.Embed = embed.Build());
 					}
 					else if (skills.Length > 1)
@@ -730,7 +730,7 @@ namespace Anubis.Modules
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
 
-								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Content = ".");
 								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
@@ -856,7 +856,7 @@ namespace Anubis.Modules
 										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
 								}
-								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Content = ".");
 								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
@@ -919,7 +919,7 @@ namespace Anubis.Modules
 											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 										}
 
-										await msg.ModifyAsync(x => x.Content = " ");
+										await msg.ModifyAsync(x => x.Content = ".");
 										await msg.ModifyAsync(x => x.Embed = embed.Build());
 										try
 										{
@@ -952,9 +952,9 @@ namespace Anubis.Modules
 							}
 
 						}
-						else if (action[0] as Dash != null)
+						else if (action[index] as Dash != null)
 						{
-							var act = action[0] as Dash;
+							var act = action[index] as Dash;
 							var embed = new EmbedBuilder()
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
@@ -1016,7 +1016,7 @@ namespace Anubis.Modules
 										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
 								}
-								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Content = ".");
 								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
@@ -1079,7 +1079,7 @@ namespace Anubis.Modules
 											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 										}
 
-										await msg.ModifyAsync(x => x.Content = " ");
+										await msg.ModifyAsync(x => x.Content = ".");
 										await msg.ModifyAsync(x => x.Embed = embed.Build());
 										try
 										{
@@ -1113,7 +1113,7 @@ namespace Anubis.Modules
 						}
 						else
 						{
-							var act = action[0];
+							var act = action[index];
 							var embed = new EmbedBuilder()
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
@@ -1175,7 +1175,7 @@ namespace Anubis.Modules
 										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
 								}
-								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Content = ".");
 								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
@@ -1238,7 +1238,7 @@ namespace Anubis.Modules
 											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 										}
 
-										await msg.ModifyAsync(x => x.Content = " ");
+										await msg.ModifyAsync(x => x.Content = ".");
 										await msg.ModifyAsync(x => x.Embed = embed.Build());
 										try
 										{
