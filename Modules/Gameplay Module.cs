@@ -6,7 +6,6 @@ using Discord.Addons.Interactive;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -337,6 +336,7 @@ namespace Anubis.Modules
 							embed.WithColor(new Color(255, 255, 0));
 							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 						}
+						await ReplyAsync(" ", false, embed.Build());
 					}
 					if (skills.Length == 1 && skills[0] == "any")
 					{
@@ -370,10 +370,8 @@ namespace Anubis.Modules
 								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
 						}
-						else
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill, cancelling operation.");
-						}
+						await msg.ModifyAsync(x => x.Content = " ");
+						await msg.ModifyAsync(x => x.Embed = embed.Build());
 					}
 					else if (skills.Length > 1)
 					{
@@ -429,6 +427,9 @@ namespace Anubis.Modules
 									embed.WithColor(new Color(255, 255, 0));
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
+
+								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
 									await reply.DeleteAsync();
@@ -439,8 +440,21 @@ namespace Anubis.Modules
 								}
 							}
 						}
+						else
+						{
+							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+							try
+							{
+								await reply.DeleteAsync();
+							}
+							catch
+							{
+
+							}
+							return;
+						}
 					}
-					await ReplyAsync(" ", false, embed.Build());
+					
 					return;
 
 				}
@@ -452,7 +466,7 @@ namespace Anubis.Modules
 						.WithThumbnailUrl(c.Attributes["image"])
 						.AddField("Talent", Utils.RenderDash(act));
 					var skills = act.Skill.Split(',');
-					if(skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+					if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
 					{
 						var dice = Roller.Roll("1d20");
 						var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
@@ -474,8 +488,9 @@ namespace Anubis.Modules
 							embed.WithColor(new Color(255, 255, 0));
 							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 						}
+						await ReplyAsync(" ", false, embed.Build());
 					}
-					if(skills.Length == 1 && skills[0] == "any")
+					if (skills.Length == 1 && skills[0] == "any")
 					{
 						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 						var reply = await NextMessageAsync();
@@ -507,10 +522,8 @@ namespace Anubis.Modules
 								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
 						}
-						else
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill, cancelling operation.");
-						}
+						await msg.ModifyAsync(x => x.Content = " ");
+						await msg.ModifyAsync(x => x.Embed = embed.Build());
 					}
 					else if (skills.Length > 1)
 					{
@@ -566,6 +579,9 @@ namespace Anubis.Modules
 									embed.WithColor(new Color(255, 255, 0));
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
+
+								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
 									await reply.DeleteAsync();
@@ -576,8 +592,20 @@ namespace Anubis.Modules
 								}
 							}
 						}
+						else
+						{
+							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+							try
+							{
+								await reply.DeleteAsync();
+							}
+							catch
+							{
+
+							}
+							return;
+						}
 					}
-					await ReplyAsync(" ", false, embed.Build());
 					return;
 				}
 				else
@@ -610,6 +638,7 @@ namespace Anubis.Modules
 							embed.WithColor(new Color(255, 255, 0));
 							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 						}
+						await ReplyAsync(" ", false, embed.Build());
 					}
 					if (skills.Length == 1 && skills[0] == "any")
 					{
@@ -643,10 +672,8 @@ namespace Anubis.Modules
 								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
 						}
-						else
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill, cancelling operation.");
-						}
+						await msg.ModifyAsync(x => x.Content = " ");
+						await msg.ModifyAsync(x => x.Embed = embed.Build());
 					}
 					else if (skills.Length > 1)
 					{
@@ -702,6 +729,9 @@ namespace Anubis.Modules
 									embed.WithColor(new Color(255, 255, 0));
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
+
+								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
 								try
 								{
 									await reply.DeleteAsync();
@@ -712,8 +742,20 @@ namespace Anubis.Modules
 								}
 							}
 						}
+						else
+						{
+							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+							try
+							{
+								await reply.DeleteAsync();
+							}
+							catch
+							{
+
+							}
+							return;
+						}
 					}
-					await ReplyAsync(" ", false, embed.Build());
 					return;
 				}
 			}
@@ -754,9 +796,9 @@ namespace Anubis.Modules
 						{
 							var act = action[index] as Talent;
 							var embed = new EmbedBuilder()
-						.WithTitle(c.Name + " performs " + act.Name + "!")
-						.WithThumbnailUrl(c.Attributes["image"])
-						.AddField("Talent", Utils.RenderTalent(act));
+								.WithTitle(c.Name + " performs " + act.Name + "!")
+								.WithThumbnailUrl(c.Attributes["image"])
+								.AddField("Talent", Utils.RenderTalent(act));
 							var skills = act.Skill.Split(',');
 							if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
 							{
@@ -780,14 +822,15 @@ namespace Anubis.Modules
 									embed.WithColor(new Color(255, 255, 0));
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
+								await ReplyAsync(" ", false, embed.Build());
 							}
 							if (skills.Length == 1 && skills[0] == "any")
 							{
-								var msg1 = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 								var reply1 = await NextMessageAsync();
 								if (reply1 == null)
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
 									return;
 								}
 								else if (Constants.Skills.TryGetValue(reply1.Content.ToLower(), out Skill sk))
@@ -813,32 +856,35 @@ namespace Anubis.Modules
 										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
 								}
-								else
+								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
+								try
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill, cancelling operation.");
+									await reply1.DeleteAsync();
 								}
+								catch { }
 							}
 							else if (skills.Length > 1)
 							{
 								var sb1 = new StringBuilder();
 								for (int i = 0; i < skills.Length; i++)
 								{
-									sb.AppendLine("`[" + i + "]` " + skills[i]);
+									sb1.AppendLine("`[" + i + "]` " + skills[i]);
 								}
-								var msg1 = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb1.ToString());
 
 								var reply1 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
 
 								if (reply1 == null)
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
 									return;
 								}
 								if (int.TryParse(reply1.Content, out int index1))
 								{
 									if (Math.Abs(index1) >= action.Length)
 									{
-										await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 										try
 										{
 											await reply1.DeleteAsync();
@@ -872,29 +918,47 @@ namespace Anubis.Modules
 											embed.WithColor(new Color(255, 255, 0));
 											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 										}
+
+										await msg.ModifyAsync(x => x.Content = " ");
+										await msg.ModifyAsync(x => x.Embed = embed.Build());
 										try
 										{
-											await reply1.DeleteAsync();
+											await reply.DeleteAsync();
 										}
 										catch
 										{
 
 										}
 									}
+									try
+									{
+										await reply1.DeleteAsync();
+									}
+									catch { }
+								}
+								else
+								{
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+									try
+									{
+										await reply1.DeleteAsync();
+									}
+									catch
+									{
+
+									}
+									return;
 								}
 							}
-							await msg.ModifyAsync(x => x.Content = " ");
-							await msg.ModifyAsync(x => x.Embed = embed.Build());
-							return;
 
 						}
-						else if (action[index] as Dash != null)
+						else if (action[0] as Dash != null)
 						{
-							var act = action[index] as Dash;
+							var act = action[0] as Dash;
 							var embed = new EmbedBuilder()
-						.WithTitle(c.Name + " performs " + act.Name + "!")
-						.WithThumbnailUrl(c.Attributes["image"])
-						.AddField("Talent", Utils.RenderDash(act));
+								.WithTitle(c.Name + " performs " + act.Name + "!")
+								.WithThumbnailUrl(c.Attributes["image"])
+								.AddField("Talent", Utils.RenderDash(act));
 							var skills = act.Skill.Split(',');
 							if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
 							{
@@ -918,14 +982,15 @@ namespace Anubis.Modules
 									embed.WithColor(new Color(255, 255, 0));
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
+								await ReplyAsync(" ", false, embed.Build());
 							}
 							if (skills.Length == 1 && skills[0] == "any")
 							{
-								var msg1 = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 								var reply1 = await NextMessageAsync();
 								if (reply1 == null)
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
 									return;
 								}
 								else if (Constants.Skills.TryGetValue(reply1.Content.ToLower(), out Skill sk))
@@ -951,32 +1016,35 @@ namespace Anubis.Modules
 										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
 								}
-								else
+								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
+								try
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill, cancelling operation.");
+									await reply1.DeleteAsync();
 								}
+								catch { }
 							}
 							else if (skills.Length > 1)
 							{
 								var sb1 = new StringBuilder();
 								for (int i = 0; i < skills.Length; i++)
 								{
-									sb.AppendLine("`[" + i + "]` " + skills[i]);
+									sb1.AppendLine("`[" + i + "]` " + skills[i]);
 								}
-								var msg1 = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb1.ToString());
 
 								var reply1 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
 
 								if (reply1 == null)
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
 									return;
 								}
 								if (int.TryParse(reply1.Content, out int index1))
 								{
 									if (Math.Abs(index1) >= action.Length)
 									{
-										await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 										try
 										{
 											await reply1.DeleteAsync();
@@ -1010,28 +1078,46 @@ namespace Anubis.Modules
 											embed.WithColor(new Color(255, 255, 0));
 											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 										}
+
+										await msg.ModifyAsync(x => x.Content = " ");
+										await msg.ModifyAsync(x => x.Embed = embed.Build());
 										try
 										{
-											await reply1.DeleteAsync();
+											await reply.DeleteAsync();
 										}
 										catch
 										{
 
 										}
 									}
+									try
+									{
+										await reply1.DeleteAsync();
+									}
+									catch { }
+								}
+								else
+								{
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+									try
+									{
+										await reply1.DeleteAsync();
+									}
+									catch
+									{
+
+									}
+									return;
 								}
 							}
-							await msg.ModifyAsync(x => x.Content = " ");
-							await msg.ModifyAsync(x => x.Embed = embed.Build());
-							return;
 						}
 						else
 						{
-							var act = action[index];
+							var act = action[0];
 							var embed = new EmbedBuilder()
-						.WithTitle(c.Name + " performs " + act.Name + "!")
-						.WithThumbnailUrl(c.Attributes["image"])
-						.AddField("Action", Utils.RenderAction(act));
+								.WithTitle(c.Name + " performs " + act.Name + "!")
+								.WithThumbnailUrl(c.Attributes["image"])
+								.AddField("Action", Utils.RenderAction(act));
 							var skills = act.Skill.Split(',');
 							if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
 							{
@@ -1055,14 +1141,15 @@ namespace Anubis.Modules
 									embed.WithColor(new Color(255, 255, 0));
 									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
+								await ReplyAsync(" ", false, embed.Build());
 							}
 							if (skills.Length == 1 && skills[0] == "any")
 							{
-								var msg1 = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 								var reply1 = await NextMessageAsync();
 								if (reply1 == null)
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
 									return;
 								}
 								else if (Constants.Skills.TryGetValue(reply1.Content.ToLower(), out Skill sk))
@@ -1088,32 +1175,35 @@ namespace Anubis.Modules
 										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
 								}
-								else
+								await msg.ModifyAsync(x => x.Content = " ");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
+								try
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill, cancelling operation.");
+									await reply1.DeleteAsync();
 								}
+								catch { }
 							}
 							else if (skills.Length > 1)
 							{
 								var sb1 = new StringBuilder();
 								for (int i = 0; i < skills.Length; i++)
 								{
-									sb.AppendLine("`[" + i + "]` " + skills[i]);
+									sb1.AppendLine("`[" + i + "]` " + skills[i]);
 								}
-								var msg1 = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb1.ToString());
 
 								var reply1 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
 
 								if (reply1 == null)
 								{
-									await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
 									return;
 								}
 								if (int.TryParse(reply1.Content, out int index1))
 								{
 									if (Math.Abs(index1) >= action.Length)
 									{
-										await msg1.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 										try
 										{
 											await reply1.DeleteAsync();
@@ -1147,21 +1237,42 @@ namespace Anubis.Modules
 											embed.WithColor(new Color(255, 255, 0));
 											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 										}
+
+										await msg.ModifyAsync(x => x.Content = " ");
+										await msg.ModifyAsync(x => x.Embed = embed.Build());
 										try
 										{
-											await reply1.DeleteAsync();
+											await reply.DeleteAsync();
 										}
 										catch
 										{
 
 										}
 									}
+									try
+									{
+										await reply1.DeleteAsync();
+									}
+									catch { }
+								}
+								else
+								{
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
+									try
+									{
+										await reply1.DeleteAsync();
+									}
+									catch
+									{
+
+									}
+									return;
 								}
 							}
-							await msg.ModifyAsync(x => x.Content = " ");
-							await msg.ModifyAsync(x => x.Embed = embed.Build());
 						}
-					try
+						
+						
+						try
 						{
 							await reply.DeleteAsync();
 						}
