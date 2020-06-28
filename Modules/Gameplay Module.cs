@@ -372,6 +372,11 @@ namespace Anubis.Modules
 						}
 						await msg.ModifyAsync(x => x.Content = ".");
 						await msg.ModifyAsync(x => x.Embed = embed.Build());
+						try
+						{
+							await reply.DeleteAsync();
+						}
+						catch { }
 					}
 					else if (skills.Length > 1)
 					{
@@ -524,6 +529,11 @@ namespace Anubis.Modules
 						}
 						await msg.ModifyAsync(x => x.Content = ".");
 						await msg.ModifyAsync(x => x.Embed = embed.Build());
+						try
+						{
+							await reply.DeleteAsync();
+						}
+						catch { }
 					}
 					else if (skills.Length > 1)
 					{
@@ -674,6 +684,11 @@ namespace Anubis.Modules
 						}
 						await msg.ModifyAsync(x => x.Content = ".");
 						await msg.ModifyAsync(x => x.Embed = embed.Build());
+						try
+						{
+							await reply.DeleteAsync();
+						}
+						catch { }
 					}
 					else if (skills.Length > 1)
 					{

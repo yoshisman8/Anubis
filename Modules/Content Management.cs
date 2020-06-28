@@ -101,7 +101,7 @@ namespace Anubis.Modules
 						}
 						gc.Name = (string)c["name"];
 
-						if (c["attributes"].HasValues)
+						if (c["attributes"] !=null &&  c["attributes"].HasValues)
 						{
 							foreach (var a in c["attributes"])
 							{
@@ -126,7 +126,7 @@ namespace Anubis.Modules
 								gc.Attributes.Add((string)a["name"], (string)a["value"]);
 							}
 						}
-						if (c["features"].HasValues)
+						if (c["features"] != null && c["features"].HasValues)
 						{
 							foreach (var f in c["features"])
 							{
