@@ -161,7 +161,7 @@ namespace Anubis.Services
 			sb.AppendLine("Energy [" + character.Attributes["energy"] + "/" + character.Attributes["maxenergy"] + "]");
 			sb.AppendLine("Dashes [" + character.Attributes["dash"] + "/" + character.Attributes["maxdash"] + "]");
 			sb.AppendLine("Woe [" + character.Attributes["woe"] + "/9]");
-			sb.AppendLine("Corruption [" + character.Attributes["woe"] + "/13]");
+			sb.AppendLine("Corruption [" + character.Attributes["corruption"] + "/13]");
 			embed.AddField("Vitals", sb.ToString(), true);
 			sb.Clear();
 
