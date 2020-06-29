@@ -1557,7 +1557,7 @@ namespace Anubis.Modules
 			var col = Database.GetCollection<ContentPack>("ContentPacks");
 
 			var packs = col.Find(x => x.Name.StartsWith(name));
-			packs = packs.OrderBy(x => x.Name);
+			packs = packs.OrderBy(x => x.Name).ThenBy(x=>x.Id);
 
 			if (packs.Count() == 0)
 			{
