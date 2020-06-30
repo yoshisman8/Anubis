@@ -170,7 +170,7 @@ namespace Anubis.Modules
 			Utils.UpdateCharacter(c);
 			await ReplyAsync(Context.User.Mention + ", " + c.Name + "'s components have changed " + hp + "->" + res + ".");
 		}
-		[Command("Skill")]
+		[Command("Skill"),Alias("Check")]
 		public async Task RollSkill([Remainder]string skill)
 		{
 			var u = Utils.GetUser(Context.User.Id);
@@ -216,7 +216,7 @@ namespace Anubis.Modules
 			}
 		}
 
-		[Command("Check")]
+		[Command("Discipline")]
 		public async Task Discipline([Remainder]string Discipline)
 		{
 			var u = Utils.GetUser(Context.User.Id);
