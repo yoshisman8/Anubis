@@ -132,7 +132,7 @@ namespace Anubis.Modules
 		}
 		[Command("Initiative"), Alias("Join", "init")]
 		[RequireContext(ContextType.Guild)]
-		public async Task Join(int Tile)
+		public async Task Join(int Tile, int Initiative)
 		{
 			Tile = Math.Abs(Tile);
 			var b = Utils.GetBattle(Context.Channel.Id);
@@ -156,7 +156,6 @@ namespace Anubis.Modules
 			}
 
 
-			int init = (int)Roller.Roll("1d20 + " + c.Attributes["agility"]).Value;
 			if (b.Participants.Exists(x => x.Id == c.Id))
 			{
 				var i = b.Participants.FindIndex(x => x.Id == c.Id);
@@ -164,7 +163,7 @@ namespace Anubis.Modules
 				{
 					Id = c.Id,
 					Type = ParticipantType.Player,
-					Initiative = init,
+					Initiative = Initiative,
 					Player = Context.User.Id,
 					Name = c.Name,
 					Token = (c.Attributes["token"].NullorEmpty() ? (c.Attributes["image"].NullorEmpty() ? "https://media.discordapp.net/attachments/722857470657036299/725046172175171645/defaulttoken.png" : c.Attributes["image"]) : c.Attributes["token"])
@@ -182,7 +181,7 @@ namespace Anubis.Modules
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
 				b.MapChanged = true;
 				Utils.UpdateBattle(b);
-				await ReplyAsync(Context.User.Mention + ", " + c.Name + " joined the encounter on " + TileNames[Tile] + " with an initiative roll of `" + init + "`!");
+				await ReplyAsync(Context.User.Mention + ", " + c.Name + " joined the encounter on " + TileNames[Tile] + " with an initiative roll of `" + Initiative + "`!");
 			}
 			else
 			{
@@ -190,7 +189,7 @@ namespace Anubis.Modules
 				{
 					Id = c.Id,
 					Type = ParticipantType.Player,
-					Initiative = init,
+					Initiative = Initiative,
 					Player = Context.User.Id,
 					Name = c.Name,
 					Token = (c.Attributes["token"].NullorEmpty() ? (c.Attributes["image"].NullorEmpty() ? "https://media.discordapp.net/attachments/722857470657036299/725046172175171645/defaulttoken.png" : c.Attributes["image"]) : c.Attributes["token"])
@@ -200,7 +199,7 @@ namespace Anubis.Modules
 				b.MapChanged = true;
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
 				Utils.UpdateBattle(b);
-				await ReplyAsync(Context.User.Mention + ", " + c.Name + " joined the encounter on " + TileNames[Tile] + " with an initiative roll of `" + init + "`!");
+				await ReplyAsync(Context.User.Mention + ", " + c.Name + " joined the encounter on " + TileNames[Tile] + " with an initiative roll of `" + Initiative + "`!");
 			}
 		}
 		[Command("AddNPC")] [RequireContext(ContextType.Guild)]
