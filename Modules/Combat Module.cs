@@ -99,7 +99,7 @@ namespace Anubis.Modules
 							var uri = new Uri(file);
 							var embed = new EmbedBuilder()
 								.WithTitle(Context.User.Username + " has started an encounter in " + Context.Channel.Name + "!")
-								.AddField("Players", "Players can join this battle by using the `" + Utils.GetPrefix(Context.Guild.Id) + "Initiative <Tile>` command!")
+								.AddField("Players", "Players can join this battle by using the `" + Utils.GetPrefix(Context.Guild.Id) + "Join <Tile> <Initiative>` command!")
 								.AddField("NPCs", "The director of the battle can add NPCs to the battle with the `" + Utils.GetPrefix(Context.Guild.Id) + "AddNPC <Initiative> <Tile> <Name>` command!")
 								.AddField("Ready to begin?", "Use the `" + Utils.GetPrefix(Context.Guild.Id) + "Battle Start` command again to start combat!")
 								.WithImageUrl($"attachment://battlemap.png");
@@ -203,7 +203,7 @@ namespace Anubis.Modules
 			}
 		}
 		[Command("AddNPC")] [RequireContext(ContextType.Guild)]
-		public async Task AddNPC(int initiative, int Tile, string tokenurl, [Remainder]string Name)
+		public async Task AddNPC(int Tile, int initiative,  string tokenurl, [Remainder]string Name)
 		{
 			Tile = Math.Abs(Tile);
 			var b = Utils.GetBattle(Context.Channel.Id);
