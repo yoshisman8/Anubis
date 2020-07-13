@@ -79,7 +79,7 @@ namespace Anubis.Modules
 			sb.AppendLine("**Encounter** Start - Start the first turn of an encounter.");
 			sb.AppendLine("**Encounter** End - End an ongoing encounter.");
 			sb.AppendLine("**Encounter** - Display the battle summary + Map");
-			sb.AppendLine("**Initiative** <tile> - Join a battle and place yourself in the selected tile.");
+			sb.AppendLine("**Initiative** <tile> <Initiative> - Join a battle and place yourself in the selected tile.");
 			sb.AppendLine("**AddNPC** <Initiative> <Tile> <Token Image Url> <Name> - Adds an NPC to the encounter in the selected tile.");
 			sb.AppendLine("**Remove** <Name> - Remove a participant from the encounter.");
 			sb.AppendLine("**Next** - Advance initiative and ping the next person in line.");
@@ -110,7 +110,7 @@ namespace Anubis.Modules
 					return;
 				case "combat":
 					embed.WithDescription("The observer can stage encounters for your players. First, you must create the encounter using the `Encounter Create` command. This will make you the encounter's director. Once you're ready to start the encounter, use the `Encounter Start` command to ping the first person in initiative and begin the battle.");
-					embed.AddField("Joining in as a player", "As a player, you can join an ongoing encounter by using the `Initiative <Tile>` command. The bot will roll initiative for you and place you in the battle in the tile you selected.");
+					embed.AddField("Joining in as a player", "As a player, you can join an ongoing encounter by using the `Initiative <Tile> <Initiative>` command. You will have to manually specify your initiative value and will likely have to roll it beforehand.");
 					embed.AddField("Adding NPCs as the director", "As the director, you can add NPCs to the encounter by using the `AddNPC <Initiative> <Tile> <Token image URL> <Name>`. You *must* supply a token image in order to add an NPC. If you add two NPCs with the same name, the bot will overwritte the existing entry with the new one.");
 					embed.AddField("Playing", "Once comabt starts, the bot will ping the first person in initiative. The person whose turn it is (or the director) can use the `Next` command to end their turn and ping the next person in initiative.");
 					embed.AddField("Moving around", "You can move your character by using the `Move <Tile>` command. The Director can use the `Move <Tile> <Name>` command to move any participant to any tile.");

@@ -170,7 +170,7 @@ namespace Anubis.Modules
 			Utils.UpdateCharacter(c);
 			await ReplyAsync(Context.User.Mention + ", " + c.Name + "'s components have changed " + hp + "->" + res + ".");
 		}
-		[Command("Skill")]
+		[Command("Skill"),Alias("Check")]
 		public async Task RollSkill([Remainder]string skill)
 		{
 			var u = Utils.GetUser(Context.User.Id);
@@ -216,7 +216,7 @@ namespace Anubis.Modules
 			}
 		}
 
-		[Command("Check")]
+		[Command("Discipline")]
 		public async Task Discipline([Remainder]string Discipline)
 		{
 			var u = Utils.GetUser(Context.User.Id);
@@ -413,8 +413,8 @@ namespace Anubis.Modules
 							{
 								string sk = skills[index];
 								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline + "_judgement"]);
+								var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
+								var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
 
 
 								if (dice.Value <= judgement)
@@ -459,7 +459,6 @@ namespace Anubis.Modules
 							return;
 						}
 					}
-					
 					return;
 
 				}
@@ -570,8 +569,8 @@ namespace Anubis.Modules
 							{
 								string sk = skills[index];
 								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline + "_judgement"]);
+								var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
+								var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
 
 
 								if (dice.Value <= judgement)
@@ -725,8 +724,8 @@ namespace Anubis.Modules
 							{
 								string sk = skills[index];
 								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline + "_judgement"]);
+								var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
+								var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
 
 
 								if (dice.Value <= judgement)
@@ -914,8 +913,8 @@ namespace Anubis.Modules
 									{
 										string sk = skills[index1];
 										var dice = Roller.Roll("1d20");
-										var fortune = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline]);
-										var judgement = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline + "_judgement"]);
+										var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
+										var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
 
 
 										if (dice.Value <= judgement)
@@ -1074,8 +1073,8 @@ namespace Anubis.Modules
 									{
 										string sk = skills[index1];
 										var dice = Roller.Roll("1d20");
-										var fortune = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline]);
-										var judgement = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline + "_judgement"]);
+										var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
+										var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
 
 
 										if (dice.Value <= judgement)
@@ -1233,8 +1232,8 @@ namespace Anubis.Modules
 									{
 										string sk = skills[index1];
 										var dice = Roller.Roll("1d20");
-										var fortune = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline]);
-										var judgement = int.Parse(c.Attributes[Constants.Skills[act.Skill].Discipline + "_judgement"]);
+										var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
+										var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
 
 
 										if (dice.Value <= judgement)

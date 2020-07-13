@@ -1433,7 +1433,7 @@ namespace Anubis.Modules
 			var user = Utils.GetUser(Context.User.Id);
 
 			var packs = user.Subscriptions.Where(x => x.Name.ToLower().StartsWith(name.ToLower()));
-			packs = packs.OrderBy(x => x.Metadata.name);
+			packs = packs.OrderBy(x => x.Name);
 
 			if (packs.Count() == 0)
 			{
@@ -1514,5 +1514,115 @@ namespace Anubis.Modules
 			}
 
 		}
+		[Command("DeletePack")]
+		public async Task DeletEPack([Remainder] string name)
+		{
+			var user = Utils.GetUser(Context.User.Id);
+
+			var col = Database.GetCollection<ContentPack>("ContentPacks");
+
+			var packs = col.Find(x => x.Name.StartsWith(name));
+			packs = packs.OrderBy(x => x.Name).ThenBy(x=>x.Id);
+
+			if (packs.Count() == 0)
+			{
+				await ReplyAsync(Context.User.Mention + ", there are no content packs with that name.");
+				return;
+			}
+			else if (packs.Count() == 1)
+			{
+				var p = packs.FirstOrDefault();
+				if(p.Author != Context.User.Id)
+				{
+					await ReplyAsync(Context.User.Mention + ", You didn't create this content pack!");
+					return;
+				}
+
+				col.Delete(x => x.Id == p.Id);
+
+				if (user.Subscriptions.Exists(x=>x.Id == p.Id))
+				{
+					user.Subscriptions.Remove(p);
+					Utils.UpdateUser(user);
+				}
+				await ReplyAsync(Context.User.Mention + ", Deleted content pack `" + p.Name + "`");
+			}
+			else if(packs.Count() > 1 && packs.Count() < 6)
+			{
+				
+				var sb = new StringBuilder();
+				sb.AppendLine(Context.User.Mention + ", Multiple content packs where found. Please respond with the number of the pack you wish to subscribe to:");
+				for(int i = 0; i < packs.Count(); i++)
+				{
+					sb.AppendLine("`[" + i + "]` " + packs.ElementAt(i).Name);
+				}
+				var msg = await ReplyAsync(sb.ToString());
+
+				var response = await NextMessageAsync(true, true, TimeSpan.FromSeconds(10));
+				
+				if(response == null)
+				{
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", Timed out on selection.");
+					return;
+				}
+				if(int.TryParse(response.Content,out int index))
+				{
+					if(Math.Abs(index) >= packs.Count())
+					{
+						await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This is not a valid option.");
+						try
+						{
+							await response.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						return;
+					}
+					else
+					{
+						try
+						{
+							await response.DeleteAsync();
+						}
+						catch
+						{
+
+						}
+						var p = packs.ElementAt(index);
+						if (p.Author != Context.User.Id)
+						{
+							await ReplyAsync(Context.User.Mention + ", You didn't create this content pack!");
+							return;
+						}
+
+						col.Delete(x => x.Id == p.Id);
+
+						if (user.Subscriptions.Exists(x => x.Id == p.Id))
+						{
+							user.Subscriptions.Remove(p);
+							Utils.UpdateUser(user);
+						}
+						await ReplyAsync(Context.User.Mention + ", Deleted content pack `" + p.Name + "`");
+					}
+				}
+				else
+				{
+					try
+					{
+						await response.DeleteAsync();
+					}
+					catch
+					{
+
+					}
+					await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling command.");
+					return;
+				}
+			}
+			
+		}
+	
 	}
 }

@@ -292,7 +292,7 @@ namespace Anubis.Services
 
 			imageFactory.Load(img);
 
-			imageFactory.Resize(new ResizeLayer(new Size(125, 150), ResizeMode.Min));
+			imageFactory.Resize(new ResizeLayer(new Size(125, 150), ResizeMode.Max));
 			return imageFactory.Image;
 		}
 		public System.Drawing.Image DownloadImageFromUrl(string imageUrl)
