@@ -341,10 +341,19 @@ namespace Anubis.Services
 			var sb = new StringBuilder();
 
 			sb.AppendLine(Icons.SheetIcons[talent.Discipline]+" "+talent.Name);
-			sb.Append("("+talent.Cost+" | ");
-			if (talent.Skill != "none") sb.Append(talent.Skill+" | ");
-			if (talent.Range != "-") sb.Append("range " + talent.Range);
+			sb.Append("("+talent.Cost);
+			if (talent.Skill != "none") sb.Append(" | "+talent.Skill);
+			if (talent.Range != "-") sb.Append(" | "+"range " + talent.Range);
 			sb.Append(")");
+			sb.Append("\n");
+			sb.AppendLine(talent.Description);
+			return sb.ToString();
+		}
+		public string RenderPassive(Passive talent)
+		{
+			var sb = new StringBuilder();
+
+			sb.AppendLine(Icons.SheetIcons[talent.Discipline] + " " + talent.Name);
 			sb.Append("\n");
 			sb.AppendLine(talent.Description);
 			return sb.ToString();

@@ -309,8 +309,8 @@ namespace Anubis.Modules
 					}
 				}
 				b.Participants = b.Participants.OrderBy(x => x.Initiative).Reverse().ToList();
-				Utils.UpdateBattle(b);
 				b.MapChanged = true;
+				Utils.UpdateBattle(b);
 				await ReplyAsync(Context.User.Mention + ", Removed " + p.Name + " from the encounter.");
 				return;
 			}

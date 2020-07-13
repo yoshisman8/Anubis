@@ -220,12 +220,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (t["range"].ToString() != "-" && !int.TryParse(t["range"].ToString(), out int result2))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + ", " + t["range"] + " is not a valid number. Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						parsedtalents.Add(new Talent()
 						{
 							Name = t["name"].ToString(),
@@ -322,12 +316,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["range"].ToString() != "-" && !int.TryParse(d["range"].ToString(), out int result2))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + ", " + d["range"] + " is not a valid number. Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						parseddashes.Add(new Dash()
 						{
 							Name = d["name"].ToString(),
@@ -398,21 +386,9 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (a["range"].ToString() != "-" && !int.TryParse(a["range"].ToString(), out int result2))
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + ", " + a["range"] + " is not a valid number. Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (a["cost"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no cost (if the cost is 0, set the cost to '0 energy'). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (!Utils.CostRegex.IsMatch(a["cost"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has an invalid cost (If this action has multiple costs, make sure to separate them with a comma). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -770,7 +746,7 @@ namespace Anubis.Modules
 						}
 						gc.Name = (string)c["name"];
 
-						if (c["attributes"].HasValues)
+						if (c["attributes"] != null && c["attributes"].HasValues)
 						{
 							foreach (var a in c["attributes"])
 							{
@@ -795,7 +771,7 @@ namespace Anubis.Modules
 								gc.Attributes.Add((string)a["name"], (string)a["value"]);
 							}
 						}
-						if (c["features"].HasValues)
+						if (c["features"] != null && c["features"].HasValues)
 						{
 							foreach (var f in c["features"])
 							{
@@ -889,12 +865,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (t["range"].ToString() != "-" && !int.TryParse(t["range"].ToString(), out int result2))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + ", " + t["range"] + " is not a valid number. Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						parsedtalents.Add(new Talent()
 						{
 							Name = t["name"].ToString(),
@@ -918,6 +888,18 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
+						if (pa["discipline"].ToString().NullorEmpty())
+						{
+							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has no discipline. Fix this error and send the file again.");
+							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
+							return;
+						}
+						if (!Enum.TryParse<Disciplines>(t["discipline"].ToString(), out Disciplines result))
+						{
+							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has an invalid discipline (make sure it's all lowercase). Fix this error and send the file again.");
+							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
+							return;
+						}
 						if (pa["description"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", passive talent " + pa["name"] + " has an empty description. Fix this error and send the file again.");
@@ -927,6 +909,7 @@ namespace Anubis.Modules
 						parsedpassives.Add(new Passive()
 						{
 							Name = pa["name"].ToString(),
+							Discipline = pa["discipline"].ToString(),
 							Description = pa["description"].ToString()
 						});
 					}
@@ -988,12 +971,6 @@ namespace Anubis.Modules
 						if (d["range"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (d["range"].ToString() != "-" && !int.TryParse(d["range"].ToString(), out int result2))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + ", " + d["range"] + " is not a valid number. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -1067,21 +1044,9 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (a["range"].ToString() != "-" && !int.TryParse(a["range"].ToString(), out int result2))
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + ", " + a["range"] + " is not a valid number. Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (a["cost"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no cost (if the cost is 0, set the cost to '0 energy'). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (!Utils.CostRegex.IsMatch(a["cost"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has an invalid cost (If this action has multiple costs, make sure to separate them with a comma). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -1110,7 +1075,7 @@ namespace Anubis.Modules
 						}
 						if (i["type"].ToString().NullorEmpty())
 						{
-							await ReplyAsync(Context.User.Mention + ", item " + i["name"] + " has no type. Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", item " + i["name"] + " has no type (Valid types: weapon, armor, shield, usable, consumable, upgrade). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}

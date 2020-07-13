@@ -174,7 +174,7 @@ namespace Anubis.Modules
 			var embed = new EmbedBuilder()
 				.WithTitle(c.Name + "'s Talents")
 				.WithThumbnailUrl(c.Attributes["image"])
-				.AddField("Passive Talent", c.Passive == null ? "None" : c.Passive.Name + "\n" + c.Passive.Description, true)
+				.AddField("Passive Talent", c.Passive == null ? "None" : Utils.RenderPassive(c.Passive))
 				.AddField("Dash Talent", c.Dash == null ? "None" : Utils.RenderDash(c.Dash))
 				.AddField("Slot 1", c.Slot1 == null ? "None" : Utils.RenderTalent(c.Slot1))
 				.AddField("Slot 2", c.Slot2 == null ? "None" : Utils.RenderTalent(c.Slot2))
