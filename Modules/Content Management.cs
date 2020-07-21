@@ -894,7 +894,7 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (!Enum.TryParse<Disciplines>(t["discipline"].ToString(), out Disciplines result))
+						if (!Enum.TryParse<Disciplines>(pa["discipline"].ToString(), out Disciplines result))
 						{
 							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has an invalid discipline (make sure it's all lowercase). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
