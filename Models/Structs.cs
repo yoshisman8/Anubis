@@ -119,7 +119,7 @@ namespace Anubis.Models
 			{ "influence", new Skill("social","precense","nerve") },
 			{ "intimidate", new Skill("social","precense","nerve") },
 			{ "lead", new Skill("social","precense","nerve") },
-			{ "negociate", new Skill("social","precense","nerve") },
+			{ "negotiate", new Skill("social","precense","nerve") },
 			{ "perform", new Skill("social","precense","nerve") },
 			{ "resolve", new Skill("social","insight","nerve") },
 			{ "access", new Skill("manipulate","insight","nerve") },
