@@ -166,12 +166,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (!Utils.CostRegex.IsMatch(t["cost"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has an invalid cost (If this talent has multiple costs, make sure to separate them with a comma). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (t["description"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no description. Fix this error and send the file again.");
@@ -811,12 +805,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (!Utils.CostRegex.IsMatch(t["cost"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has an invalid cost (If this talent has multiple costs, make sure to separate them with a comma). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (t["description"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no description. Fix this error and send the file again.");
@@ -888,18 +876,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (pa["discipline"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has no discipline. Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (!Enum.TryParse<Disciplines>(t["discipline"].ToString(), out Disciplines result))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has an invalid discipline (make sure it's all lowercase). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (pa["description"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", passive talent " + pa["name"] + " has an empty description. Fix this error and send the file again.");
@@ -909,7 +885,6 @@ namespace Anubis.Modules
 						parsedpassives.Add(new Passive()
 						{
 							Name = pa["name"].ToString(),
-							Discipline = pa["discipline"].ToString(),
 							Description = pa["description"].ToString()
 						});
 					}
