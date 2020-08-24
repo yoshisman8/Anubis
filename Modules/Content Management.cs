@@ -258,8 +258,9 @@ namespace Anubis.Modules
 						parsedpassives.Add(new Passive()
 						{
 							Name = pa["name"].ToString(),
-							Description = pa["description"].ToString()
-						});
+							Description = pa["description"].ToString(),
+							Discipline = pa["discipline"].ToString()
+						}) ;
 					}
 					p.Passives = parsedpassives;
 				}
@@ -894,10 +895,23 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
+						if (pa["discipline"].ToString().NullorEmpty())
+						{
+							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has no discipline. Fix this error and send the file again.");
+							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
+							return;
+						}
+						if (!Enum.TryParse<Disciplines>(pa["discipline"].ToString(), out Disciplines result))
+						{
+							await ReplyAsync(Context.User.Mention + ", talent " + pa["name"] + " has an invalid discipline (make sure it's all lowercase). Fix this error and send the file again.");
+							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
+							return;
+						}
 						parsedpassives.Add(new Passive()
 						{
 							Name = pa["name"].ToString(),
-							Description = pa["description"].ToString()
+							Description = pa["description"].ToString(),
+							Discipline = pa["discipline"].ToString()
 						});
 					}
 					p.Passives = parsedpassives;
