@@ -338,7 +338,7 @@ namespace Anubis.Modules
 						}
 						await ReplyAsync(" ", false, embed.Build());
 					}
-					if (skills.Length == 1 && skills[0] == "any")
+					else if (skills.Length == 1 && skills[0] == "any")
 					{
 						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 						var reply = await NextMessageAsync();
@@ -498,7 +498,7 @@ namespace Anubis.Modules
 						}
 						await ReplyAsync(" ", false, embed.Build());
 					}
-					if (skills.Length == 1 && skills[0] == "any")
+					else if (skills.Length == 1 && skills[0] == "any")
 					{
 						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 						var reply = await NextMessageAsync();
@@ -657,7 +657,7 @@ namespace Anubis.Modules
 						}
 						await ReplyAsync(" ", false, embed.Build());
 					}
-					if (skills.Length == 1 && skills[0] == "any")
+					else if (skills.Length == 1 && skills[0] == "any")
 					{
 						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 						var reply = await NextMessageAsync();
@@ -1013,7 +1013,7 @@ namespace Anubis.Modules
 								}
 								await ReplyAsync(" ", false, embed.Build());
 							}
-							if (skills.Length == 1 && skills[0] == "any")
+							else if (skills.Length == 1 && skills[0] == "any")
 							{
 								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 								var reply1 = await NextMessageAsync();
@@ -1176,7 +1176,7 @@ namespace Anubis.Modules
 								}
 								await ReplyAsync(" ", false, embed.Build());
 							}
-							if (skills.Length == 1 && skills[0] == "any")
+							else if (skills.Length == 1 && skills[0] == "any")
 							{
 								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
 								var reply1 = await NextMessageAsync();
