@@ -396,7 +396,7 @@ namespace Anubis.Modules
 						}
 						if (int.TryParse(reply.Content, out int index))
 						{
-							if (Math.Abs(index) >= action.Length)
+							if (Math.Abs(index) > action.Length)
 							{
 								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 								try
@@ -552,7 +552,7 @@ namespace Anubis.Modules
 						}
 						if (int.TryParse(reply.Content, out int index))
 						{
-							if (Math.Abs(index) >= action.Length)
+							if (Math.Abs(index) > action.Length)
 							{
 								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 								try
@@ -707,7 +707,7 @@ namespace Anubis.Modules
 						}
 						if (int.TryParse(reply.Content, out int index))
 						{
-							if (Math.Abs(index) >= action.Length)
+							if (Math.Abs(index) > action.Length)
 							{
 								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 								try
@@ -896,7 +896,7 @@ namespace Anubis.Modules
 								}
 								if (int.TryParse(reply1.Content, out int index1))
 								{
-									if (Math.Abs(index1) >= action.Length)
+									if (Math.Abs(index1) > action.Length)
 									{
 										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 										try
@@ -1215,7 +1215,7 @@ namespace Anubis.Modules
 								}
 								if (int.TryParse(reply1.Content, out int index1))
 								{
-									if (Math.Abs(index1) >= action.Length)
+									if (Math.Abs(index1) > action.Length)
 									{
 										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
 										try
