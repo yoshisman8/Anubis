@@ -126,6 +126,11 @@ namespace Anubis.Models
 			{ "repurpose", new Skill("manipulate","insight","nerve") },
 			{ "salvage", new Skill("manipulate","insight","nerve") },
 			{ "wield", new Skill("manipulate","insight","nerve") },
+			{ "exploration", new Skill("exploartion","insight","nerve") },
+			{ "survival", new Skill("survival","insight","nerve") },
+			{ "combat", new Skill("combat","insight","nerve") },
+			{ "social", new Skill("social","insight","nerve") },
+			{ "manipulate", new Skill("manipulate", "insight", "nerve") }
 		};
 		public static Dictionary<string, string> DefaultAttributes { get; set; } = new Dictionary<string, string>()
 		{
@@ -142,15 +147,15 @@ namespace Anubis.Models
 			{ "insight", "0" },
 			{ "presence","0" },
 			{ "exploration", "18" },
-			{ "exploration_judgement", "9" },
+			{ "exploration_judgement", "8" },
 			{ "survival", "18" },
-			{ "survival_judgement", "9" },
+			{ "survival_judgement", "8" },
 			{ "combat", "18" },
-			{ "combat_judgement", "9" },
+			{ "combat_judgement", "8" },
 			{ "social", "18" },
-			{ "social_judgement", "9" },
+			{ "social_judgement", "8" },
 			{ "manipulate", "18" },
-			{ "manipulate_judgement", "9" },
+			{ "manipulate_judgement", "8" },
 			{ "dash" , "2" },
 			{ "maxdash", "2" },
 			{ "armor","0" },
