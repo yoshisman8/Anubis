@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Anubis.Modules
@@ -15,6 +16,7 @@ namespace Anubis.Modules
 	public class Gameplay_Module : InteractiveBase<SocketCommandContext>
 	{
 		public Utilities Utils { get; set; }
+		private Regex BonusRegex = new Regex(@"[\+\-]+\s?\d+");
 
 		[Command("Health"), Alias("HP")]
 		public async Task changeHP(int value)
@@ -182,30 +184,41 @@ namespace Anubis.Modules
 			}
 			var c = u.Active;
 
-			if (Constants.Skills.TryGetValue(skill.ToLower(), out Skill value))
+			string[] Bonuses = new string[0];
+			if (BonusRegex.IsMatch(skill))
 			{
-				var dice = Roller.Roll("1d20");
+				Bonuses = BonusRegex.Matches(skill).Select(x => x.Value).ToArray();
+				foreach (var b in Bonuses)
+				{
+					skill = skill.Replace(b, "");
+				}
+				skill = skill.Trim();
+			}
+
+			if (Constants.Skills.TryGetValue(skill.ToLower(), out string value))
+			{
+				var dice = Roller.Roll("1d20"+ (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 				var embed = new EmbedBuilder()
 					.WithTitle(c.Name + " makes a " + skill + " check.")
 					.WithThumbnailUrl(c.Attributes["image"]);
-				var fortune = int.Parse(c.Attributes[value.Discipline]);
-				var judgement = int.Parse(c.Attributes[value.Discipline + "_judgement"]);
-			
+				var fortune = int.Parse(c.Attributes[value]);
+				var judgement = int.Parse(c.Attributes[value+ "_judgement"]);
+
 
 				if (dice.Value <= judgement)
 				{
 					embed.WithColor(Color.Red);
-					embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+					embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune +"]\n" +ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 				}
 				else if (dice.Value >= fortune)
 				{
 					embed.WithColor(Color.Green);
-					embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+					embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 				}
 				else
 				{
 					embed.WithColor(new Color(255, 255, 0));
-					embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+					embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 				}
 				await ReplyAsync(" ", false, embed.Build());
 			}
@@ -214,48 +227,6 @@ namespace Anubis.Modules
 				await ReplyAsync(Context.User.Mention + ", This isn't a valid skill.");
 				return;
 			}
-		}
-
-		[Command("Discipline")]
-		public async Task Discipline([Remainder]string Discipline)
-		{
-			var u = Utils.GetUser(Context.User.Id);
-
-			if (u.Active == null)
-			{
-				await ReplyAsync(Context.User.Mention + ", you have no active character.");
-				return;
-			}
-			var c = u.Active;
-			if (!Disciplines.Contains(Discipline))
-			{
-				await ReplyAsync(Context.User.Mention + ", This isn't a valid Discipline");
-				return;
-			}
-			var dice = Roller.Roll("1d20");
-			var embed = new EmbedBuilder()
-				.WithTitle(c.Name + " makes a " + Discipline + " check.")
-				.WithThumbnailUrl(c.Attributes["image"]);
-			var fortune = int.Parse(c.Attributes[Discipline]);
-			var judgement = int.Parse(c.Attributes[Discipline + "_judgement"]);
-
-
-			if (dice.Value <= judgement)
-			{
-				embed.WithColor(Color.Red);
-				embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-			}
-			else if (dice.Value >= fortune)
-			{
-				embed.WithColor(Color.Green);
-				embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-			}
-			else
-			{
-				embed.WithColor(new Color(255, 255, 0));
-				embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-			}
-			await ReplyAsync(" ", false, embed.Build());
 		}
 		[Command("Roll"), Alias("R", "Dice")]
 		[Summary("Make a dice roll.")]
@@ -297,6 +268,16 @@ namespace Anubis.Modules
 				return;
 			}
 			var c = u.Active;
+			string[] Bonuses = new string[0];
+			if (BonusRegex.IsMatch(Name))
+			{
+				Bonuses = BonusRegex.Matches(Name).Select(x => x.Value).ToArray();
+				foreach (var b in Bonuses)
+				{
+					Name = Name.Replace(b, "");
+				}
+				Name = Name.Trim();
+			}
 
 			var action = Utils.QueryActions(Name, u,c);
 			if(action.Length == 0)
@@ -310,161 +291,39 @@ namespace Anubis.Modules
 				{
 					var act = action[0] as Talent;
 					var embed = new EmbedBuilder()
-						.WithTitle(c.Name+" performs "+act.Name+"!")
+						.WithTitle(c.Name + " performs " + act.Name + "!")
 						.WithThumbnailUrl(c.Attributes["image"])
-						.AddField("Talent",Utils.RenderTalent(act));
-					var skills = act.Skill.Split(',');
-					if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+						.AddField("Talent", Utils.RenderTalent(act));
+					if (act.Roll == true)
 					{
-						var dice = Roller.Roll("1d20");
-						var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
-						var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline + "_judgement"]);
+						var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
+						var fortune = int.Parse(c.Attributes[act.Discipline]);
+						var judgement = int.Parse(c.Attributes[act.Discipline + "_judgement"]);
 
 
 						if (dice.Value <= judgement)
 						{
 							embed.WithColor(Color.Red);
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+							embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 						}
 						else if (dice.Value >= fortune)
 						{
 							embed.WithColor(Color.Green);
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+							embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 						}
 						else
 						{
 							embed.WithColor(new Color(255, 255, 0));
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+							embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 						}
 						await ReplyAsync(" ", false, embed.Build());
-					}
-					else if (skills.Length == 1 && skills[0] == "any")
-					{
-						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
-						var reply = await NextMessageAsync();
-						if (reply == null)
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-							return;
-						}
-						else if (Constants.Skills.TryGetValue(reply.Content.ToLower(), out Skill sk))
-						{
-							var dice = Roller.Roll("1d20");
-							var fortune = int.Parse(c.Attributes[sk.Discipline]);
-							var judgement = int.Parse(c.Attributes[sk.Discipline + "_judgement"]);
-
-
-							if (dice.Value <= judgement)
-							{
-								embed.WithColor(Color.Red);
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-							}
-							else if (dice.Value >= fortune)
-							{
-								embed.WithColor(Color.Green);
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-							}
-							else
-							{
-								embed.WithColor(new Color(255, 255, 0));
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-							}
-						}
-						await msg.ModifyAsync(x => x.Content = ".");
-						await msg.ModifyAsync(x => x.Embed = embed.Build());
-						try
-						{
-							await reply.DeleteAsync();
-						}
-						catch { }
-					}
-					else if (skills.Length > 1)
-					{
-						var sb = new StringBuilder();
-						for (int i = 0; i < skills.Length; i++)
-						{
-							sb.AppendLine("`[" + i + "]` " + skills[i]);
-						}
-						var msg = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
-
-						var reply = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
-
-						if (reply == null)
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-							return;
-						}
-						if (int.TryParse(reply.Content, out int index))
-						{
-							if (Math.Abs(index) > action.Length)
-							{
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
-								try
-								{
-									await reply.DeleteAsync();
-								}
-								catch
-								{
-
-								}
-								return;
-							}
-							else
-							{
-								string sk = skills[index];
-								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
-
-
-								if (dice.Value <= judgement)
-								{
-									embed.WithColor(Color.Red);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-								}
-								else if (dice.Value >= fortune)
-								{
-									embed.WithColor(Color.Green);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-								}
-								else
-								{
-									embed.WithColor(new Color(255, 255, 0));
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-								}
-
-								await msg.ModifyAsync(x => x.Content = ".");
-								await msg.ModifyAsync(x => x.Embed = embed.Build());
-								try
-								{
-									await reply.DeleteAsync();
-								}
-								catch
-								{
-
-								}
-							}
-						}
-						else
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
-							try
-							{
-								await reply.DeleteAsync();
-							}
-							catch
-							{
-
-							}
-							return;
-						}
+						return;
 					}
 					else
 					{
 						await ReplyAsync(" ", false, embed.Build());
+						return;
 					}
-					return;
-
 				}
 				else if (action[0] as Dash != null)
 				{
@@ -473,157 +332,36 @@ namespace Anubis.Modules
 						.WithTitle(c.Name + " performs " + act.Name + "!")
 						.WithThumbnailUrl(c.Attributes["image"])
 						.AddField("Talent", Utils.RenderDash(act));
-					var skills = act.Skill.Split(',');
-					if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+					if (act.Roll == true)
 					{
-						var dice = Roller.Roll("1d20");
-						var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
-						var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline + "_judgement"]);
+						var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
+						var fortune = int.Parse(c.Attributes[act.Discipline]);
+						var judgement = int.Parse(c.Attributes[act.Discipline + "_judgement"]);
 
 
 						if (dice.Value <= judgement)
 						{
 							embed.WithColor(Color.Red);
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+							embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 						}
 						else if (dice.Value >= fortune)
 						{
 							embed.WithColor(Color.Green);
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+							embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 						}
 						else
 						{
 							embed.WithColor(new Color(255, 255, 0));
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+							embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 						}
 						await ReplyAsync(" ", false, embed.Build());
-					}
-					else if (skills.Length == 1 && skills[0] == "any")
-					{
-						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
-						var reply = await NextMessageAsync();
-						if (reply == null)
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-							return;
-						}
-						else if (Constants.Skills.TryGetValue(reply.Content.ToLower(), out Skill sk))
-						{
-							var dice = Roller.Roll("1d20");
-							var fortune = int.Parse(c.Attributes[sk.Discipline]);
-							var judgement = int.Parse(c.Attributes[sk.Discipline + "_judgement"]);
-
-
-							if (dice.Value <= judgement)
-							{
-								embed.WithColor(Color.Red);
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-							}
-							else if (dice.Value >= fortune)
-							{
-								embed.WithColor(Color.Green);
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-							}
-							else
-							{
-								embed.WithColor(new Color(255, 255, 0));
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-							}
-						}
-						await msg.ModifyAsync(x => x.Content = ".");
-						await msg.ModifyAsync(x => x.Embed = embed.Build());
-						try
-						{
-							await reply.DeleteAsync();
-						}
-						catch { }
-					}
-					else if (skills.Length > 1)
-					{
-						var sb = new StringBuilder();
-						for (int i = 0; i < skills.Length; i++)
-						{
-							sb.AppendLine("`[" + i + "]` " + skills[i]);
-						}
-						var msg = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
-
-						var reply = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
-
-						if (reply == null)
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-							return;
-						}
-						if (int.TryParse(reply.Content, out int index))
-						{
-							if (Math.Abs(index) > action.Length)
-							{
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
-								try
-								{
-									await reply.DeleteAsync();
-								}
-								catch
-								{
-
-								}
-								return;
-							}
-							else
-							{
-								string sk = skills[index];
-								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
-
-
-								if (dice.Value <= judgement)
-								{
-									embed.WithColor(Color.Red);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-								}
-								else if (dice.Value >= fortune)
-								{
-									embed.WithColor(Color.Green);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-								}
-								else
-								{
-									embed.WithColor(new Color(255, 255, 0));
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-								}
-
-								await msg.ModifyAsync(x => x.Content = ".");
-								await msg.ModifyAsync(x => x.Embed = embed.Build());
-								try
-								{
-									await reply.DeleteAsync();
-								}
-								catch
-								{
-
-								}
-							}
-						}
-						else
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
-							try
-							{
-								await reply.DeleteAsync();
-							}
-							catch
-							{
-
-							}
-							return;
-						}
+						return;
 					}
 					else
 					{
 						await ReplyAsync(" ", false, embed.Build());
+						return;
 					}
-					return;
 				}
 				else
 				{
@@ -632,92 +370,149 @@ namespace Anubis.Modules
 						.WithTitle(c.Name + " performs " + act.Name + "!")
 						.WithThumbnailUrl(c.Attributes["image"])
 						.AddField("Action", Utils.RenderAction(act));
-					var skills = act.Skill.Split(',');
-					if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+					if (act.Roll)
 					{
-						var dice = Roller.Roll("1d20");
-						var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
-						var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline + "_judgement"]);
+						var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 
-
-						if (dice.Value <= judgement)
+						var skills = act.Skill.Split(',');
+						if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
 						{
-							embed.WithColor(Color.Red);
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-						}
-						else if (dice.Value >= fortune)
-						{
-							embed.WithColor(Color.Green);
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-						}
-						else
-						{
-							embed.WithColor(new Color(255, 255, 0));
-							embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-						}
-						await ReplyAsync(" ", false, embed.Build());
-					}
-					else if (skills.Length == 1 && skills[0] == "any")
-					{
-						var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
-						var reply = await NextMessageAsync();
-						if (reply == null)
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-							return;
-						}
-						else if (Constants.Skills.TryGetValue(reply.Content.ToLower(), out Skill sk))
-						{
-							var dice = Roller.Roll("1d20");
-							var fortune = int.Parse(c.Attributes[sk.Discipline]);
-							var judgement = int.Parse(c.Attributes[sk.Discipline + "_judgement"]);
+							
+							var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]]]);
+							var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]] + "_judgement"]);
 
 
 							if (dice.Value <= judgement)
 							{
 								embed.WithColor(Color.Red);
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+								embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 							}
 							else if (dice.Value >= fortune)
 							{
 								embed.WithColor(Color.Green);
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+								embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 							}
 							else
 							{
 								embed.WithColor(new Color(255, 255, 0));
-								embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+								embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 							}
-						}
-						await msg.ModifyAsync(x => x.Content = ".");
-						await msg.ModifyAsync(x => x.Embed = embed.Build());
-						try
-						{
-							await reply.DeleteAsync();
-						}
-						catch { }
-					}
-					else if (skills.Length > 1)
-					{
-						var sb = new StringBuilder();
-						for (int i = 0; i < skills.Length; i++)
-						{
-							sb.AppendLine("`[" + i + "]` " + skills[i]);
-						}
-						var msg = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
-
-						var reply = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
-
-						if (reply == null)
-						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+							await ReplyAsync(" ", false, embed.Build());
 							return;
 						}
-						if (int.TryParse(reply.Content, out int index))
+						else if (skills.Length == 1 && skills[0] == "any")
 						{
-							if (Math.Abs(index) > action.Length)
+							var msg = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
+							var reply = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
+							if (reply == null)
 							{
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+								return;
+							}
+							else if (Constants.Skills.TryGetValue(reply.Content.ToLower(), out string sk))
+							{
+								var fortune = int.Parse(c.Attributes[sk]);
+								var judgement = int.Parse(c.Attributes[sk + "_judgement"]);
+
+
+								if (dice.Value <= judgement)
+								{
+									embed.WithColor(Color.Red);
+									embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+								}
+								else if (dice.Value >= fortune)
+								{
+									embed.WithColor(Color.Green);
+									embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+								}
+								else
+								{
+									embed.WithColor(new Color(255, 255, 0));
+									embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+								}
+								await msg.ModifyAsync(x => x.Content = ".");
+								await msg.ModifyAsync(x => x.Embed = embed.Build());
+							}
+							else
+							{
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill or discipline.");
+								return;
+							}
+							try
+							{
+								await reply.DeleteAsync();
+							}
+							catch { }
+						}
+						else if (skills.Length > 1)
+						{
+							var sb = new StringBuilder();
+							for (int i = 0; i < skills.Length; i++)
+							{
+								sb.AppendLine("`[" + i + "]` " + skills[i]);
+							}
+							var msg = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
+
+							var reply = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
+
+							if (reply == null)
+							{
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+								return;
+							}
+							if (int.TryParse(reply.Content, out int index))
+							{
+								if (Math.Abs(index) > action.Length)
+								{
+									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+									try
+									{
+										await reply.DeleteAsync();
+									}
+									catch
+									{
+
+									}
+									return;
+								}
+								else
+								{
+									string sk = skills[index];
+									var fortune = int.Parse(c.Attributes[Constants.Skills[sk]]);
+									var judgement = int.Parse(c.Attributes[Constants.Skills[sk] + "_judgement"]);
+
+
+									if (dice.Value <= judgement)
+									{
+										embed.WithColor(Color.Red);
+										embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+									}
+									else if (dice.Value >= fortune)
+									{
+										embed.WithColor(Color.Green);
+										embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+									}
+									else
+									{
+										embed.WithColor(new Color(255, 255, 0));
+										embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+									}
+
+									await msg.ModifyAsync(x => x.Content = ".");
+									await msg.ModifyAsync(x => x.Embed = embed.Build());
+									try
+									{
+										await reply.DeleteAsync();
+									}
+									catch
+									{
+
+									}
+								}
+							}
+							else
+							{
+								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
 								try
 								{
 									await reply.DeleteAsync();
@@ -728,61 +523,17 @@ namespace Anubis.Modules
 								}
 								return;
 							}
-							else
-							{
-								string sk = skills[index];
-								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
-
-
-								if (dice.Value <= judgement)
-								{
-									embed.WithColor(Color.Red);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-								}
-								else if (dice.Value >= fortune)
-								{
-									embed.WithColor(Color.Green);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-								}
-								else
-								{
-									embed.WithColor(new Color(255, 255, 0));
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-								}
-
-								await msg.ModifyAsync(x => x.Content = ".");
-								await msg.ModifyAsync(x => x.Embed = embed.Build());
-								try
-								{
-									await reply.DeleteAsync();
-								}
-								catch
-								{
-
-								}
-							}
 						}
 						else
 						{
-							await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
-							try
-							{
-								await reply.DeleteAsync();
-							}
-							catch
-							{
-
-							}
-							return;
+							await ReplyAsync(" ", false, embed.Build());
 						}
+						return;
 					}
 					else
 					{
 						await ReplyAsync(" ", false, embed.Build());
 					}
-					return;
 				}
 			}
 			else if(action.Length > 1)
@@ -825,160 +576,35 @@ namespace Anubis.Modules
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
 								.AddField("Talent", Utils.RenderTalent(act));
-							var skills = act.Skill.Split(',');
-							if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+							if (act.Roll == true)
 							{
-								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline + "_judgement"]);
+								var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
+								var fortune = int.Parse(c.Attributes[act.Discipline]);
+								var judgement = int.Parse(c.Attributes[act.Discipline + "_judgement"]);
 
 
 								if (dice.Value <= judgement)
 								{
 									embed.WithColor(Color.Red);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+									embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 								}
 								else if (dice.Value >= fortune)
 								{
 									embed.WithColor(Color.Green);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+									embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 								}
 								else
 								{
 									embed.WithColor(new Color(255, 255, 0));
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+									embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
 								await ReplyAsync(" ", false, embed.Build());
-							}
-							else if (skills.Length == 1 && skills[0] == "any")
-							{
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
-								var reply1 = await NextMessageAsync();
-								if (reply1 == null)
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-									return;
-								}
-								else if (Constants.Skills.TryGetValue(reply1.Content.ToLower(), out Skill sk))
-								{
-									var dice = Roller.Roll("1d20");
-									var fortune = int.Parse(c.Attributes[sk.Discipline]);
-									var judgement = int.Parse(c.Attributes[sk.Discipline + "_judgement"]);
-
-
-									if (dice.Value <= judgement)
-									{
-										embed.WithColor(Color.Red);
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-									}
-									else if (dice.Value >= fortune)
-									{
-										embed.WithColor(Color.Green);
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-									}
-									else
-									{
-										embed.WithColor(new Color(255, 255, 0));
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-									}
-								}
-								await msg.ModifyAsync(x => x.Content = ".");
-								await msg.ModifyAsync(x => x.Embed = embed.Build());
-								try
-								{
-									await reply1.DeleteAsync();
-								}
-								catch { }
-							}
-							else if (skills.Length > 1)
-							{
-								var sb1 = new StringBuilder();
-								for (int i = 0; i < skills.Length; i++)
-								{
-									sb1.AppendLine("`[" + i + "]` " + skills[i]);
-								}
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb1.ToString());
-
-								var reply1 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
-
-								if (reply1 == null)
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-									return;
-								}
-								if (int.TryParse(reply1.Content, out int index1))
-								{
-									if (Math.Abs(index1) > action.Length)
-									{
-										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
-										try
-										{
-											await reply1.DeleteAsync();
-										}
-										catch
-										{
-
-										}
-										return;
-									}
-									else
-									{
-										string sk = skills[index1];
-										var dice = Roller.Roll("1d20");
-										var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
-										var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
-
-
-										if (dice.Value <= judgement)
-										{
-											embed.WithColor(Color.Red);
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-										}
-										else if (dice.Value >= fortune)
-										{
-											embed.WithColor(Color.Green);
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-										}
-										else
-										{
-											embed.WithColor(new Color(255, 255, 0));
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-										}
-
-										await msg.ModifyAsync(x => x.Content = ".");
-										await msg.ModifyAsync(x => x.Embed = embed.Build());
-										try
-										{
-											await reply.DeleteAsync();
-										}
-										catch
-										{
-
-										}
-									}
-									try
-									{
-										await reply1.DeleteAsync();
-									}
-									catch { }
-								}
-								else
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
-									try
-									{
-										await reply1.DeleteAsync();
-									}
-									catch
-									{
-
-									}
-									return;
-								}
+								return;
 							}
 							else
 							{
 								await ReplyAsync(" ", false, embed.Build());
+								return;
 							}
 						}
 						else if (action[index] as Dash != null)
@@ -988,160 +614,35 @@ namespace Anubis.Modules
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
 								.AddField("Talent", Utils.RenderDash(act));
-							var skills = act.Skill.Split(',');
-							if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+							if (act.Roll == true)
 							{
-								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline + "_judgement"]);
+								var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
+								var fortune = int.Parse(c.Attributes[act.Discipline]);
+								var judgement = int.Parse(c.Attributes[act.Discipline + "_judgement"]);
 
 
 								if (dice.Value <= judgement)
 								{
 									embed.WithColor(Color.Red);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+									embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 								}
 								else if (dice.Value >= fortune)
 								{
 									embed.WithColor(Color.Green);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+									embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 								}
 								else
 								{
 									embed.WithColor(new Color(255, 255, 0));
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+									embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 								}
 								await ReplyAsync(" ", false, embed.Build());
-							}
-							else if (skills.Length == 1 && skills[0] == "any")
-							{
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
-								var reply1 = await NextMessageAsync();
-								if (reply1 == null)
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-									return;
-								}
-								else if (Constants.Skills.TryGetValue(reply1.Content.ToLower(), out Skill sk))
-								{
-									var dice = Roller.Roll("1d20");
-									var fortune = int.Parse(c.Attributes[sk.Discipline]);
-									var judgement = int.Parse(c.Attributes[sk.Discipline + "_judgement"]);
-
-
-									if (dice.Value <= judgement)
-									{
-										embed.WithColor(Color.Red);
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-									}
-									else if (dice.Value >= fortune)
-									{
-										embed.WithColor(Color.Green);
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-									}
-									else
-									{
-										embed.WithColor(new Color(255, 255, 0));
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-									}
-								}
-								await msg.ModifyAsync(x => x.Content = ".");
-								await msg.ModifyAsync(x => x.Embed = embed.Build());
-								try
-								{
-									await reply1.DeleteAsync();
-								}
-								catch { }
-							}
-							else if (skills.Length > 1)
-							{
-								var sb1 = new StringBuilder();
-								for (int i = 0; i < skills.Length; i++)
-								{
-									sb1.AppendLine("`[" + i + "]` " + skills[i]);
-								}
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb1.ToString());
-
-								var reply1 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
-
-								if (reply1 == null)
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-									return;
-								}
-								if (int.TryParse(reply1.Content, out int index1))
-								{
-									if (Math.Abs(index1) >= action.Length)
-									{
-										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
-										try
-										{
-											await reply1.DeleteAsync();
-										}
-										catch
-										{
-
-										}
-										return;
-									}
-									else
-									{
-										string sk = skills[index1];
-										var dice = Roller.Roll("1d20");
-										var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
-										var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
-
-
-										if (dice.Value <= judgement)
-										{
-											embed.WithColor(Color.Red);
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-										}
-										else if (dice.Value >= fortune)
-										{
-											embed.WithColor(Color.Green);
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-										}
-										else
-										{
-											embed.WithColor(new Color(255, 255, 0));
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-										}
-
-										await msg.ModifyAsync(x => x.Content = ".");
-										await msg.ModifyAsync(x => x.Embed = embed.Build());
-										try
-										{
-											await reply.DeleteAsync();
-										}
-										catch
-										{
-
-										}
-									}
-									try
-									{
-										await reply1.DeleteAsync();
-									}
-									catch { }
-								}
-								else
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
-									try
-									{
-										await reply1.DeleteAsync();
-									}
-									catch
-									{
-
-									}
-									return;
-								}
+								return;
 							}
 							else
 							{
 								await ReplyAsync(" ", false, embed.Build());
+								return;
 							}
 						}
 						else
@@ -1151,95 +652,152 @@ namespace Anubis.Modules
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
 								.AddField("Action", Utils.RenderAction(act));
-							var skills = act.Skill.Split(',');
-							if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+							if (act.Roll)
 							{
-								var dice = Roller.Roll("1d20");
-								var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline]);
-								var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]].Discipline + "_judgement"]);
+								var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 
+								var skills = act.Skill.Split(',');
+								if (skills.Length == 1 && skills[0] != "none" && skills[0] != "any")
+								{
 
-								if (dice.Value <= judgement)
-								{
-									embed.WithColor(Color.Red);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-								}
-								else if (dice.Value >= fortune)
-								{
-									embed.WithColor(Color.Green);
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-								}
-								else
-								{
-									embed.WithColor(new Color(255, 255, 0));
-									embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-								}
-								await ReplyAsync(" ", false, embed.Build());
-							}
-							else if (skills.Length == 1 && skills[0] == "any")
-							{
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
-								var reply1 = await NextMessageAsync();
-								if (reply1 == null)
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
-									return;
-								}
-								else if (Constants.Skills.TryGetValue(reply1.Content.ToLower(), out Skill sk))
-								{
-									var dice = Roller.Roll("1d20");
-									var fortune = int.Parse(c.Attributes[sk.Discipline]);
-									var judgement = int.Parse(c.Attributes[sk.Discipline + "_judgement"]);
+									var fortune = int.Parse(c.Attributes[Constants.Skills[skills[0]]]);
+									var judgement = int.Parse(c.Attributes[Constants.Skills[skills[0]] + "_judgement"]);
 
 
 									if (dice.Value <= judgement)
 									{
 										embed.WithColor(Color.Red);
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+										embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
 									}
 									else if (dice.Value >= fortune)
 									{
 										embed.WithColor(Color.Green);
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+										embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
 									}
 									else
 									{
 										embed.WithColor(new Color(255, 255, 0));
-										embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+										embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
 									}
-								}
-								await msg.ModifyAsync(x => x.Content = ".");
-								await msg.ModifyAsync(x => x.Embed = embed.Build());
-								try
-								{
-									await reply1.DeleteAsync();
-								}
-								catch { }
-							}
-							else if (skills.Length > 1)
-							{
-								var sb1 = new StringBuilder();
-								for (int i = 0; i < skills.Length; i++)
-								{
-									sb1.AppendLine("`[" + i + "]` " + skills[i]);
-								}
-								await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb1.ToString());
-
-								var reply1 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
-
-								if (reply1 == null)
-								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+									await ReplyAsync(" ", false, embed.Build());
 									return;
 								}
-								if (int.TryParse(reply1.Content, out int index1))
+								else if (skills.Length == 1 && skills[0] == "any")
 								{
-									if (Math.Abs(index1) > action.Length)
+									var msg2 = await ReplyAsync(Context.User.Mention + ", This action/talent can use any skill. Respond with the name of the skill you wish to use.");
+									var reply2 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
+									if (reply2 == null)
 									{
-										await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+										await msg2.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+										return;
+									}
+									else if (Constants.Skills.TryGetValue(reply2.Content.ToLower(), out string sk))
+									{
+										var fortune = int.Parse(c.Attributes[sk]);
+										var judgement = int.Parse(c.Attributes[sk + "_judgement"]);
+
+
+										if (dice.Value <= judgement)
+										{
+											embed.WithColor(Color.Red);
+											embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+										}
+										else if (dice.Value >= fortune)
+										{
+											embed.WithColor(Color.Green);
+											embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+										}
+										else
+										{
+											embed.WithColor(new Color(255, 255, 0));
+											embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+										}
+										await msg2.ModifyAsync(x => x.Content = ".");
+										await msg2.ModifyAsync(x => x.Embed = embed.Build());
+									}
+									else
+									{
+										await msg2.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a valid skill or discipline.");
+										return;
+									}
+									try
+									{
+										await reply2.DeleteAsync();
+									}
+									catch { }
+								}
+								else if (skills.Length > 1)
+								{
+									var sb2 = new StringBuilder();
+									for (int i = 0; i < skills.Length; i++)
+									{
+										sb2.AppendLine("`[" + i + "]` " + skills[i]);
+									}
+									var msg2 = await ReplyAsync(Context.User.Mention + ", This action or talent can use more than one skill. Please respond with the number of the skill you wish to roll:\n" + sb.ToString());
+
+									var reply2 = await NextMessageAsync(timeout: TimeSpan.FromSeconds(10));
+
+									if (reply2 == null)
+									{
+										await msg2.ModifyAsync(x => x.Content = Context.User.Mention + ", You took too respond.");
+										return;
+									}
+									if (int.TryParse(reply2.Content, out int index2))
+									{
+										if (Math.Abs(index2) > action.Length)
+										{
+											await msg2.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't one of the options. Please use the command again.");
+											try
+											{
+												await reply2.DeleteAsync();
+											}
+											catch
+											{
+
+											}
+											return;
+										}
+										else
+										{
+											string sk = skills[index2];
+											var fortune = int.Parse(c.Attributes[Constants.Skills[sk]]);
+											var judgement = int.Parse(c.Attributes[Constants.Skills[sk] + "_judgement"]);
+
+
+											if (dice.Value <= judgement)
+											{
+												embed.WithColor(Color.Red);
+												embed.WithDescription("[**" + judgement + "**] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
+											}
+											else if (dice.Value >= fortune)
+											{
+												embed.WithColor(Color.Green);
+												embed.WithDescription("[" + judgement + "] | [" + (judgement + 1) + "~" + (fortune - 1) + "] | [**" + fortune + "**]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
+											}
+											else
+											{
+												embed.WithColor(new Color(255, 255, 0));
+												embed.WithDescription("[" + judgement + "] | [**" + (judgement + 1) + "~" + (fortune - 1) + "**] | [" + fortune + "]\n" + ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
+											}
+
+											await msg2.ModifyAsync(x => x.Content = ".");
+											await msg2.ModifyAsync(x => x.Embed = embed.Build());
+											try
+											{
+												await reply.DeleteAsync();
+											}
+											catch
+											{
+
+											}
+										}
+									}
+									else
+									{
+										await msg2.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
 										try
 										{
-											await reply1.DeleteAsync();
+											await reply2.DeleteAsync();
 										}
 										catch
 										{
@@ -1247,68 +805,20 @@ namespace Anubis.Modules
 										}
 										return;
 									}
-									else
-									{
-										string sk = skills[index1];
-										var dice = Roller.Roll("1d20");
-										var fortune = int.Parse(c.Attributes[Constants.Skills[sk].Discipline]);
-										var judgement = int.Parse(c.Attributes[Constants.Skills[sk].Discipline + "_judgement"]);
-
-
-										if (dice.Value <= judgement)
-										{
-											embed.WithColor(Color.Red);
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Judgement)");
-										}
-										else if (dice.Value >= fortune)
-										{
-											embed.WithColor(Color.Green);
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Fortune)");
-										}
-										else
-										{
-											embed.WithColor(new Color(255, 255, 0));
-											embed.WithDescription(ParseResult(dice) + " = `" + dice.Value + "` (Temperance)");
-										}
-
-										await msg.ModifyAsync(x => x.Content = ".");
-										await msg.ModifyAsync(x => x.Embed = embed.Build());
-										try
-										{
-											await reply.DeleteAsync();
-										}
-										catch
-										{
-
-										}
-									}
-									try
-									{
-										await reply1.DeleteAsync();
-									}
-									catch { }
 								}
 								else
 								{
-									await msg.ModifyAsync(x => x.Content = Context.User.Mention + ", This isn't a number. Cancelling operation.");
-									try
-									{
-										await reply1.DeleteAsync();
-									}
-									catch
-									{
-
-									}
-									return;
+									await ReplyAsync(" ", false, embed.Build());
 								}
+								return;
 							}
 							else
 							{
 								await ReplyAsync(" ", false, embed.Build());
 							}
 						}
-						
-						
+
+
 						try
 						{
 							await reply.DeleteAsync();

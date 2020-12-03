@@ -160,12 +160,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (t["cost"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no cost (if the cost is 0, set the cost to '0 energy'). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (t["description"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no description. Fix this error and send the file again.");
@@ -184,33 +178,9 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (t["skill"].ToString().NullorEmpty())
+						if(t["roll"] == null)
 						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no skill (If no skill is used, set this field to 'none'). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (t["skill"].ToString().Split(",").Length > 1)
-						{
-							foreach (var sk in t["skill"].ToString().Split(","))
-							{
-								if (sk != "none" && sk != "any" && !Skills.ContainsKey(sk))
-								{
-									await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + ", Skill " + sk + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
-									File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-									return;
-								}
-							}
-						}
-						if (t["skill"].ToString().Split(",").Length == 1 && t["skill"].ToString() != "none" && t["skill"].ToString() != "any" && !Skills.ContainsKey(t["skill"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + ", Skill " + t["skill"] + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (t["range"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " Doesn't specify if it needs a roll or not (valid values for this field is 'true' or 'false'. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -218,10 +188,8 @@ namespace Anubis.Modules
 						{
 							Name = t["name"].ToString(),
 							Description = t["description"].ToString(),
-							Cost = t["cost"].ToString(),
 							Discipline = t["discipline"].ToString(),
-							Skill = t["skill"].ToString(),
-							Range = t["range"].ToString()
+							Roll = (bool)t["roll"]
 						});
 					}
 					p.Talents = parsedtalents;
@@ -281,55 +249,31 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["skill"].ToString().NullorEmpty())
+						if (d["discipline"].ToString().NullorEmpty())
 						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no skill (If no skill is used, set this field to 'none'). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no discipline. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["skill"].ToString().Split(",").Length > 1)
+						if (!Enum.TryParse<Disciplines>(d["discipline"].ToString(), out Disciplines result))
 						{
-							foreach (var sk in d["skill"].ToString().Split(","))
-							{
-								if (sk != "none" && sk != "any" && !Skills.ContainsKey(sk))
-								{
-									await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + ", Skill " + sk + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
-									File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-									return;
-								}
-							}
-						}
-						if (d["skill"].ToString().Split(",").Length == 1 && d["skill"].ToString() != "none" && d["skill"].ToString() != "any" && !Skills.ContainsKey(d["skill"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + ", Skill " + d["skill"] + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has an invalid discipline (make sure it's all lowercase). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["type"].ToString().NullorEmpty())
+						if (d["roll"] == null)
 						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " Doesn't specify if it needs a roll or not (valid values for this field is 'true' or 'false'. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["type"].ToString() != "action" && d["type"].ToString() != "reaction")
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (d["range"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
+
 						parseddashes.Add(new Dash()
 						{
 							Name = d["name"].ToString(),
 							Description = d["description"].ToString(),
-							Skill = d["skill"].ToString(),
-							Type = d["type"].ToString(),
-							Range = d["range"].ToString()
+							Discipline = d["discipline"].ToString(),
+							Roll = (bool)d["roll"]
 						});
 					}
 					p.Dashes = parseddashes;
@@ -375,27 +319,9 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (a["type"].ToString().NullorEmpty())
+						if (a["roll"] == null)
 						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (a["type"].ToString() != "action" && a["type"].ToString() != "reaction")
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (a["range"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (a["cost"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no cost (if the cost is 0, set the cost to '0 energy'). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + a["name"] + " Doesn't specify if it needs a roll or not (valid values for this field is 'true' or 'false'. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -403,10 +329,8 @@ namespace Anubis.Modules
 						{
 							Name = a["name"].ToString(),
 							Description = a["description"].ToString(),
-							Cost = a["cost"].ToString(),
-							Range = a["range"].ToString(),
 							Skill = a["skill"].ToString(),
-							Type = a["type"].ToString()
+							Roll = (bool)a["roll"]
 						});
 					}
 					p.Actions = parsedactions;
@@ -812,12 +736,6 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (t["cost"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no cost (if the cost is 0, set the cost to '0 energy'). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
 						if (t["description"].ToString().NullorEmpty())
 						{
 							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no description. Fix this error and send the file again.");
@@ -836,33 +754,9 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (t["skill"].ToString().NullorEmpty())
+						if (t["roll"] == null)
 						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no skill (If no skill is used, set this field to 'none'). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (t["skill"].ToString().Split(",").Length > 1)
-						{
-							foreach (var sk in t["skill"].ToString().Split(","))
-							{
-								if (sk != "none" && sk != "any" && !Skills.ContainsKey(sk))
-								{
-									await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + ", Skill " + sk + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
-									File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-									return;
-								}
-							}
-						}
-						if (t["skill"].ToString().Split(",").Length == 1 && t["skill"].ToString() != "none" && t["skill"].ToString() != "any" && !Skills.ContainsKey(t["skill"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + ", Skill " + t["skill"] + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (t["range"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + t["name"] + " Doesn't specify if it needs a roll or not (valid values for this field is 'true' or 'false'. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -870,10 +764,8 @@ namespace Anubis.Modules
 						{
 							Name = t["name"].ToString(),
 							Description = t["description"].ToString(),
-							Cost = t["cost"].ToString(),
 							Discipline = t["discipline"].ToString(),
-							Skill = t["skill"].ToString(),
-							Range = t["range"].ToString()
+							Roll = (bool)t["roll"]
 						});
 					}
 					p.Talents = parsedtalents;
@@ -933,55 +825,31 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["skill"].ToString().NullorEmpty())
+						if (d["discipline"].ToString().NullorEmpty())
 						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no skill (If no skill is used, set this field to 'none'). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no discipline. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["skill"].ToString().Split(",").Length > 1)
+						if (!Enum.TryParse<Disciplines>(d["discipline"].ToString(), out Disciplines result))
 						{
-							foreach (var sk in d["skill"].ToString().Split(","))
-							{
-								if (sk != "none" && sk != "any" && !Skills.ContainsKey(sk))
-								{
-									await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + ", Skill " + sk + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
-									File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-									return;
-								}
-							}
-						}
-						if (d["skill"].ToString().Split(",").Length == 1 && d["skill"].ToString() != "none" && d["skill"].ToString() != "any" && !Skills.ContainsKey(d["skill"].ToString()))
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + ", Skill " + d["skill"] + " is not valid (Make sure it's all lowercase). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has an invalid discipline (make sure it's all lowercase). Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["type"].ToString().NullorEmpty())
+						if (d["roll"] == null)
 						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " Doesn't specify if it needs a roll or not (valid values for this field is 'true' or 'false'. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (d["type"].ToString() != "action" && d["type"].ToString() != "reaction")
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (d["range"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", talent " + d["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
+
 						parseddashes.Add(new Dash()
 						{
 							Name = d["name"].ToString(),
 							Description = d["description"].ToString(),
-							Skill = d["skill"].ToString(),
-							Type = d["type"].ToString(),
-							Range = d["range"].ToString()
+							Discipline = d["discipline"].ToString(),
+							Roll = (bool)d["roll"]
 						});
 					}
 					p.Dashes = parseddashes;
@@ -1027,27 +895,9 @@ namespace Anubis.Modules
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
-						if (a["type"].ToString().NullorEmpty())
+						if (a["roll"] == null)
 						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (a["type"].ToString() != "action" && a["type"].ToString() != "reaction")
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no type (Valid types are action and reaction). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (a["range"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no range (If range is not a part of this talent, set this field to '-'.). Fix this error and send the file again.");
-							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
-							return;
-						}
-						if (a["cost"].ToString().NullorEmpty())
-						{
-							await ReplyAsync(Context.User.Mention + ", action " + a["name"] + " has no cost (if the cost is 0, set the cost to '0 energy'). Fix this error and send the file again.");
+							await ReplyAsync(Context.User.Mention + ", talent " + a["name"] + " Doesn't specify if it needs a roll or not (valid values for this field is 'true' or 'false'. Fix this error and send the file again.");
 							File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "data", "temp", file.Filename));
 							return;
 						}
@@ -1055,10 +905,8 @@ namespace Anubis.Modules
 						{
 							Name = a["name"].ToString(),
 							Description = a["description"].ToString(),
-							Cost = a["cost"].ToString(),
-							Range = a["range"].ToString(),
 							Skill = a["skill"].ToString(),
-							Type = a["type"].ToString()
+							Roll = (bool)a["roll"]
 						});
 					}
 					p.Actions = parsedactions;

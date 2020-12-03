@@ -28,7 +28,7 @@ namespace Anubis.Models
 	}
 	public class Dash : Action
 	{
-		
+		public string Discipline { get; set; }
 	}
 	public class Passive
 	{
@@ -72,65 +72,51 @@ namespace Anubis.Models
 	public class Action
 	{
 		public string Name { get; set; }
-		public string Type { get; set; }
 		public string Description { get; set; }
-		public string Cost { get; set; }
 		public string Skill { get; set; }
-		public string Range { get; set; }
-	}
-	public struct Skill
-	{
-		public string Discipline { get; set; }
-		public string Ability { get; set; }
-		public string Boost { get; set; }
-		public Skill(string discipline, string ability, string boost)
-		{
-			Discipline = discipline;
-			Ability = ability;
-			Boost = boost;
-		}
+		public bool Roll { get; set; }
 	}
 	public static class Constants
 	{
-		public static Dictionary<string, Skill> Skills = new Dictionary<string, Skill>()
+		public static Dictionary<string, string> Skills = new Dictionary<string, string>()
 		{
-			{ "awareness", new Skill("exploration","insight","nerve") },
-			{ "balance", new Skill("exploration","agility","grit") },
-			{ "climb", new Skill("exploration","vigor","grit") },
-			{ "jump", new Skill("exploration","vigor","grit") },
-			{ "lift", new Skill("exploration","vigor","grit") },
-			{ "reflex", new Skill("exploration","agility","grit") },
-			{ "sneak", new Skill("exploration","agility","grit") },
-			{ "swim", new Skill("exploration","agility","grit") },
-			{ "cartography", new Skill("survival","insight","nerve") },
-			{ "cook", new Skill("survival","insight","nerve") },
-			{ "craft", new Skill("survival","insight","nerve") },
-			{ "forage", new Skill("survival","insight","nerve") },
-			{ "fortitude", new Skill("survival","vigor","grit") },
-			{ "heal", new Skill("survival","insight","nerve") },
-			{ "nature", new Skill("survival","track","nerve") },
-			{ "track", new Skill("survival","insight","nerve") },
-			{ "aim", new Skill("combat","agility","grit") },
-			{ "defend", new Skill("combat","vigor","grit") },
-			{ "fight", new Skill("combat","vigor","grit") },
-			{ "maneuver", new Skill("combat","agility","grit") },
-			{ "empathy", new Skill("social","precense","nerve") },
-			{ "handle animal", new Skill("social","precense","nerve") },
-			{ "influence", new Skill("social","precense","nerve") },
-			{ "intimidate", new Skill("social","precense","nerve") },
-			{ "lead", new Skill("social","precense","nerve") },
-			{ "negotiate", new Skill("social","precense","nerve") },
-			{ "perform", new Skill("social","precense","nerve") },
-			{ "resolve", new Skill("social","insight","nerve") },
-			{ "access", new Skill("manipulate","insight","nerve") },
-			{ "repurpose", new Skill("manipulate","insight","nerve") },
-			{ "salvage", new Skill("manipulate","insight","nerve") },
-			{ "wield", new Skill("manipulate","insight","nerve") },
-			{ "exploration", new Skill("exploartion","insight","nerve") },
-			{ "survival", new Skill("survival","insight","nerve") },
-			{ "combat", new Skill("combat","insight","nerve") },
-			{ "social", new Skill("social","insight","nerve") },
-			{ "manipulate", new Skill("manipulate", "insight", "nerve") }
+			{ "awareness", "exploration" },
+			{ "balance", "exploration" },
+			{ "climb", "exploration" },
+			{ "jump", "exploration" },
+			{ "lift", "exploration" },
+			{ "reflex", "exploration" },
+			{ "sneak", "exploration" },
+			{ "swim", "exploration" },
+			{ "cartography", "survival" },
+			{ "cook", "survival" },
+			{ "craft", "survival" },
+			{ "forage", "survival" },
+			{ "fortitude", "survival" },
+			{ "heal", "survival" },
+			{ "nature", "survival" },
+			{ "track", "survival" },
+			{ "aim", "combat" },
+			{ "defend", "combat" },
+			{ "fight", "combat" },
+			{ "maneuver", "combat" },
+			{ "empathy", "social" },
+			{ "handle animal", "social" },
+			{ "influence", "social" },
+			{ "intimidate", "social" },
+			{ "lead", "social" },
+			{ "negotiate", "social" },
+			{ "perform", "social" },
+			{ "resolve", "social" },
+			{ "access", "manipulate" },
+			{ "repurpose", "manipulate" },
+			{ "salvage", "manipulate" },
+			{ "wield", "manipulate" },
+			{ "exploration", "exploartion"},
+			{ "survival", "survival"},
+			{ "combat", "combat" },
+			{ "social", "social" },
+			{ "manipulate", "manipulate" }
 		};
 		public static Dictionary<string, string> DefaultAttributes { get; set; } = new Dictionary<string, string>()
 		{

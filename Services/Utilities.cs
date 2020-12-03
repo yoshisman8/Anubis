@@ -341,11 +341,6 @@ namespace Anubis.Services
 			var sb = new StringBuilder();
 
 			sb.AppendLine(Icons.SheetIcons[talent.Discipline]+" "+talent.Name);
-			sb.Append("("+talent.Cost);
-			if (talent.Skill != "none") sb.Append(" | "+talent.Skill);
-			if (talent.Range != "-") sb.Append(" | " + talent.Range);
-			sb.Append(")");
-			sb.Append("\n");
 			sb.AppendLine(talent.Description);
 			return sb.ToString();
 		}
@@ -362,12 +357,7 @@ namespace Anubis.Services
 		{
 			var sb = new StringBuilder();
 
-			sb.AppendLine(talent.Name);
-			sb.Append("(" + talent.Type);
-			if (talent.Skill != "none") sb.Append(" | "+talent.Skill);
-			if (talent.Range != "-") sb.Append(" | " + talent.Range);
-			sb.Append(")");
-			sb.Append("\n");
+			sb.AppendLine(Icons.SheetIcons[talent.Discipline] + " " +talent.Name);
 			sb.AppendLine(talent.Description);
 			return sb.ToString();
 		}
@@ -375,11 +365,6 @@ namespace Anubis.Services
 		{
 			var sb = new StringBuilder();
 			sb.AppendLine(action.Name);
-			sb.Append("(" + action.Type+" | " + action.Cost + " | ");
-			if (action.Skill != "none") sb.Append(" | " + action.Skill);
-			if (action.Range != "-") sb.Append(" | " + action.Range);
-			sb.Append(")");
-			sb.Append("\n");
 			sb.AppendLine(action.Description);
 			return sb.ToString();
 		}
