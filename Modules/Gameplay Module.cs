@@ -170,7 +170,7 @@ namespace Anubis.Modules
 			Utils.UpdateCharacter(c);
 			await ReplyAsync(Context.User.Mention + ", " + c.Name + "'s components have changed " + hp + "->" + res + ".");
 		}
-		[Command("Skill"),Alias("Check")]
+		[Command("Skill"),Alias("Check","C")]
 		public async Task RollSkill([Remainder]string skill)
 		{
 			var u = Utils.GetUser(Context.User.Id);
@@ -1344,13 +1344,15 @@ namespace Anubis.Modules
 
 			c.Attributes["health"] = c.Attributes["maxhealth"];
 
+			c.Attributes["dash"] = c.Attributes["maxdash"];
+
 			foreach (var i in c.Inventory.Where(x => x.Type == "usable"))
 			{
 				int index = c.Inventory.IndexOf(i);
 				c.Inventory[index].Used = 0;
 			}
 			Utils.UpdateCharacter(c);
-			await ReplyAsync(Context.User.Mention + ", " + c.Name + " has restored all Health and Energy.");
+			await ReplyAsync(Context.User.Mention + ", " + c.Name + " has restored all Health, Energy and Dashes.");
 		}
 		
 		private string ParseResult(RollResult result)

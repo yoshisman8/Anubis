@@ -160,7 +160,7 @@ namespace Anubis.Modules
 				return;
 			}
 		}
-		[Command("Talents")]
+		[Command("Talents"),Alias("Talent")]
 		public async Task ViewTalents()
 		{
 			var u = Utils.GetUser(Context.User.Id);
@@ -183,7 +183,7 @@ namespace Anubis.Modules
 
 			await ReplyAsync(" ", false, embed.Build());
 		}
-		[Command("Talent")]
+		[Command("Talent"),Alias("Talents")]
 		public async Task SlotTalent(string Slot, [Remainder]string Name)
 		{
 			var u = Utils.GetUser(Context.User.Id);

@@ -68,9 +68,9 @@ namespace Anubis.Modules
 			sb.AppendLine("**Components** <Value> - Increase or Decrease your Components.");
 			sb.AppendLine("**Skill** <Name> - Perform a skill check.");
 			sb.AppendLine("**Check** <Discipline> - Perform a Discipline check.");
-			sb.AppendLine("*Roll** <Dice Expression> - Roll dice.");
+			sb.AppendLine("**Roll** <Dice Expression> - Roll dice.");
 			sb.AppendLine("**Act** <Talent> - Display and roll for a talent.");
-			sb.AppendLine("**Rest** - Start a new Scene and recover 6 energy and recharge all usable items.");
+			sb.AppendLine("**Restore** - Fully Restore your character's Health, Energy and Dashes.");
 
 			embed.AddField("Gameplay Module", sb.ToString());
 			sb.Clear();
