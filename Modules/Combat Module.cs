@@ -100,7 +100,7 @@ namespace Anubis.Modules
 							var embed = new EmbedBuilder()
 								.WithTitle(Context.User.Username + " has started an encounter in " + Context.Channel.Name + "!")
 								.AddField("Players", "Players can join this battle by using the `" + Utils.GetPrefix(Context.Guild.Id) + "Join <Tile> <Initiative>` command!")
-								.AddField("NPCs", "The director of the battle can add NPCs to the battle with the `" + Utils.GetPrefix(Context.Guild.Id) + "AddNPC <Initiative> <Tile> <Name>` command!")
+								.AddField("NPCs", "The director of the battle can add NPCs to the battle with the `" + Utils.GetPrefix(Context.Guild.Id) + "AddNPC <Tile> <Initiative> <ImageURL> <Name>` command!")
 								.AddField("Ready to begin?", "Use the `" + Utils.GetPrefix(Context.Guild.Id) + "Battle Start` command again to start combat!")
 								.WithImageUrl($"attachment://battlemap.png");
 							await Context.Channel.SendFileAsync(file, " ", false, embed.Build());
