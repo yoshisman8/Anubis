@@ -294,7 +294,7 @@ namespace Anubis.Modules
 						.WithTitle(c.Name + " performs " + act.Name + "!")
 						.WithThumbnailUrl(c.Attributes["image"])
 						.AddField("Talent", Utils.RenderTalent(act));
-					if (act.Roll == true)
+					if (act.Roll)
 					{
 						var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 						var fortune = int.Parse(c.Attributes[act.Discipline]);
@@ -332,7 +332,7 @@ namespace Anubis.Modules
 						.WithTitle(c.Name + " performs " + act.Name + "!")
 						.WithThumbnailUrl(c.Attributes["image"])
 						.AddField("Talent", Utils.RenderDash(act));
-					if (act.Roll == true)
+					if (act.Roll)
 					{
 						var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 						var fortune = int.Parse(c.Attributes[act.Discipline]);
@@ -576,7 +576,7 @@ namespace Anubis.Modules
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
 								.AddField("Talent", Utils.RenderTalent(act));
-							if (act.Roll == true)
+							if (act.Roll)
 							{
 								var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 								var fortune = int.Parse(c.Attributes[act.Discipline]);
@@ -614,7 +614,7 @@ namespace Anubis.Modules
 								.WithTitle(c.Name + " performs " + act.Name + "!")
 								.WithThumbnailUrl(c.Attributes["image"])
 								.AddField("Talent", Utils.RenderDash(act));
-							if (act.Roll == true)
+							if (act.Roll)
 							{
 								var dice = Roller.Roll("1d20" + (Bonuses.Length > 0 ? string.Join(" ", Bonuses) : ""));
 								var fortune = int.Parse(c.Attributes[act.Discipline]);
